@@ -10,7 +10,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -48,6 +47,9 @@ import app.crossword.yourealwaysbe.view.recycler.RemovableRecyclerViewAdapter;
 import app.crossword.yourealwaysbe.view.recycler.SeparatedRecyclerViewAdapter;
 import app.crossword.yourealwaysbe.view.recycler.ShowHideOnScroll;
 import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
+import app.crossword.yourealwaysbe.util.files.Accessor;
+import app.crossword.yourealwaysbe.util.files.DirHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,9 +73,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private static final Logger LOGGER = Logger.getLogger(BrowseActivity.class.getCanonicalName());
     private Accessor accessor = Accessor.DATE_DESC;
     private SeparatedRecyclerViewAdapter<FileViewHolder> currentAdapter = null;
-    private File archiveFolder = new File(Environment.getExternalStorageDirectory(), "crosswords/archive");
-    private File contextFile;
-    private File crosswordsFolder = new File(Environment.getExternalStorageDirectory(), "crosswords");
+    private DirHandle archiveFolder = getFileHandler().getArchiveDirectory();
+    private DirHandle crosswordsFolder = getFileHandler().getCrosswordsDirectory();
     private FileHandle lastOpenedHandle = null;
     private Handler handler = new Handler(Looper.getMainLooper());
     private RecyclerView puzzleList;
@@ -113,19 +114,19 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             if(menuItem.getTitle().equals("Delete")){
                 for(FileHandle handle : selected){
-                    deleteFile(handle.file);
+                    handle.delete();
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Archive")){
                 for(FileHandle handle : selected){
-                    moveTo(handle.file, archiveFolder);
+                    handle.moveTo(archiveFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Un-archive")){
                 for(FileHandle handle : selected){
-                    moveTo(handle.file, crosswordsFolder);
+                    handle.moveTo(crosswordsFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
@@ -142,50 +143,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
     };
     private int primaryTextColor;
-
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        File meta = new File(this.contextFile.getParent(),
-                contextFile.getName().substring(0, contextFile.getName().lastIndexOf(".")) + ".forkyz");
-
-        if (item.getTitle()
-                    .equals("Delete")) {
-            this.contextFile.delete();
-
-            if (meta.exists()) {
-                meta.delete();
-            }
-
-            render();
-
-            return true;
-        } else if (item.getTitle()
-                           .equals("Archive")) {
-            this.archiveFolder.mkdirs();
-            moveTo(contextFile, archiveFolder);
-            render();
-
-            return true;
-        } else if (item.getTitle()
-                           .equals("Un-archive")) {
-            moveTo(contextFile, crosswordsFolder);
-            render();
-
-            return true;
-        } else if ("Mark as Updated".equals(item.getTitle())) {
-            try {
-                Puzzle p = IO.load(this.contextFile);
-                p.setUpdatable(false);
-                IO.save(p, this.contextFile);
-                render();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return super.onContextItemSelected(item);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -316,12 +273,12 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 FileHandle handle = (FileHandle) ((FileViewHolder) viewHolder).itemView.getTag();
                 System.out.println(" SWIPED "+handle.file.getAbsolutePath());
                 if("DELETE".equals(prefs.getString("swipeAction", "DELETE"))) {
-                    deleteFile(handle.file);
+                    handle.delete();
                 } else {
                     if (viewArchive) {
-                        moveTo(handle.file, crosswordsFolder);
+                        handle.moveTo(crosswordsFolder);
                     } else {
-                        moveTo(handle.file, archiveFolder);
+                        handle.moveTo(archiveFolder);
                     }
                 }
                 currentAdapter.onItemDismiss(viewHolder.getAdapterPosition());
@@ -435,11 +392,11 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         } else {
             if (lastOpenedHandle != null) {
                 try {
-                    lastOpenedHandle.meta = IO.meta(lastOpenedHandle.file);
+                    lastOpenedHandle.reloadMeta();
 
                     CircleProgressBar bar = (CircleProgressBar) lastOpenedView.findViewById(R.id.puzzle_progress);
 
-                    if (lastOpenedHandle.meta.updatable) {
+                    if (lastOpenedHandle.isUpdatable()) {
                         bar.setPercentFilled(-1);
                     } else {
                         bar.setPercentFilled(lastOpenedHandle.getFilled());
@@ -463,12 +420,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         this.checkDownload();
     }
 
-    private SeparatedRecyclerViewAdapter<FileViewHolder> buildList(File directory, Accessor accessor) {
-        directory.mkdirs();
-
+    private SeparatedRecyclerViewAdapter<FileViewHolder> buildList(DirHandle directory, Accessor accessor) {
         long incept = System.currentTimeMillis();
-        ArrayList<FileHandle> files = new ArrayList<FileHandle>();
-        FileHandle[] puzFiles = null;
 
         if (!directory.exists()) {
             showSDCardHelp();
@@ -477,7 +430,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 FileViewHolder.class
             );
         }
-
 
         String sourceMatch = null;
 
@@ -489,29 +441,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
             }
         }
 
-        HashSet<String> sourcesTemp = new HashSet<String>();
-
-        for (File f : directory.listFiles()) {
-            if (f.getName()
-                     .endsWith(".puz")) {
-                PuzzleMeta m = null;
-
-                try {
-                    m = IO.meta(f);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                FileHandle h = new FileHandle(f, m);
-                sourcesTemp.add(h.getSource());
-
-                if ((sourceMatch == null) || sourceMatch.equals(h.getSource())) {
-                    files.add(h);
-                }
-            }
-        }
-
-        puzFiles = files.toArray(new FileHandle[files.size()]);
+        FileHandle[] puzFiles = directory.getPuzFiles(sourceMatch);
 
         try {
             Arrays.sort(puzFiles, accessor);
@@ -563,35 +493,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
     }
 
-    private FileHandle[] getFileHandlesFromDirectory(File directory) {
-        ArrayList<FileHandle> files = new ArrayList<>();
-        FileHandle[] puzFiles;
-        try {
-            for (File f : directory.listFiles()) {
-                if (f.getName()
-                        .endsWith(".puz")) {
-                    PuzzleMeta m = null;
-
-                    try {
-                        m = IO.meta(f);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    files.add(new FileHandle(f, m));
-                }
-            }
-        } catch(Exception e){
-            LOGGER.log(Level.WARNING, "error listing files!");
-        }
-
-        puzFiles = files.toArray(new FileHandle[files.size()]);
-        Arrays.sort(puzFiles);
-        files.clear();
-
-        return puzFiles;
-    }
-
     private LocalDate getMaxAge(String preferenceValue) {
         int cleanupValue = Integer.parseInt(preferenceValue) + 1;
         if (cleanupValue > 0)
@@ -609,7 +510,9 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         ArrayList<FileHandle> toDelete = new ArrayList<FileHandle>();
 
         if (maxAge != null) {
-            for (FileHandle h : getFileHandlesFromDirectory(this.crosswordsFolder)) {
+            FileHandle[] puzFiles = crosswordsFolder.getPuzFiles();
+            Arrays.sort(puzFiles);
+            for (FileHandle h : puzFiles) {
                 if ((h.getComplete() == 100) || (h.getDate().isBefore(maxAge))) {
                     if (deleteOnCleanup) {
                         toDelete.add(h);
@@ -621,7 +524,9 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         if (archiveMaxAge != null) {
-            for (FileHandle h : getFileHandlesFromDirectory(this.archiveFolder)) {
+            FileHandle[] puzFiles = archiveFolder.getPuzFiles();
+            Arrays.sort(puzFiles);
+            for (FileHandle h : puzFiles) {
                 if (h.getDate().isBefore(archiveMaxAge)) {
                     toDelete.add(h);
                 }
@@ -629,29 +534,14 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         for (FileHandle h : toDelete) {
-            File meta = new File(
-                    h.file.getPath().substring(0, h.file.getPath().lastIndexOf(".")) + ".forkyz");
-            h.file.delete();
-            meta.delete();
+            h.delete();
         }
 
         for (FileHandle h : toArchive) {
-            moveTo(h.file, this.archiveFolder);
+            h.moveTo(this.archiveFolder);
         }
 
         render();
-    }
-
-    private void deleteFile(File puzFile){
-        File meta = new File(puzFile.getParentFile(), puzFile.getName().substring(0, puzFile.getName().lastIndexOf(".")) + ".forkyz");
-        puzFile.delete();
-        meta.delete();
-    }
-
-    private void moveTo(File puzFile, File directory){
-        File meta = new File(puzFile.getParentFile(), puzFile.getName().substring(0, puzFile.getName().lastIndexOf(".")) + ".forkyz");
-        puzFile.renameTo(new File(directory, puzFile.getName()));
-        meta.renameTo(new File(directory, meta.getName()));
     }
 
     private void download(final LocalDate d, final List<Downloader> downloaders, final boolean scrape) {
@@ -709,13 +599,12 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
         utils.clearBackgroundDownload(prefs);
 
-        final File directory = viewArchive ? BrowseActivity.this.archiveFolder : BrowseActivity.this.crosswordsFolder;
-        directory.mkdirs();
+        final DirHandle directory = viewArchive ? BrowseActivity.this.archiveFolder : BrowseActivity.this.crosswordsFolder;
         //Only spawn a thread if there are a lot of puzzles.
         // Using SDK rev as a proxy to decide whether you have a slow processor or not.
 
-        if (((android.os.Build.VERSION.SDK_INT >= 5) && directory.exists() && (directory.list().length > 500)) ||
-                ((android.os.Build.VERSION.SDK_INT < 5) && directory.exists() && (directory.list().length > 160))) {
+        if (((android.os.Build.VERSION.SDK_INT >= 5) && directory.exists() && (directory.numFiles() > 500)) ||
+                ((android.os.Build.VERSION.SDK_INT < 5) && directory.exists() && (directory.numFiles() > 160))) {
 
             final View progressBar
                 = BrowseActivity.this.findViewById( R.id.please_wait_notice);
@@ -761,11 +650,15 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 public void run() {
                     lastOpenedView = v;
                     lastOpenedHandle = ((FileHandle) v.getTag());
-                    if (lastOpenedHandle == null || lastOpenedHandle.file == null) {
+                    if (lastOpenedHandle == null) {
                         return;
                     }
-                    File puzFile = lastOpenedHandle.file;
-                    Intent i = new Intent(Intent.ACTION_EDIT, Uri.fromFile(puzFile), BrowseActivity.this, PlayActivity.class);
+                    Intent i = new Intent(
+                        Intent.ACTION_EDIT,
+                        lastOpenedHandle.getUri(),
+                        BrowseActivity.this,
+                        PlayActivity.class
+                    );
                     startActivity(i);
                 }
             }, 450);

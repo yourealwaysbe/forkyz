@@ -1,18 +1,21 @@
-package app.crossword.yourealwaysbe;
+package app.crossword.yourealwaysbe.util.files;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import android.net.Uri;
+
+import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 
-
 public class FileHandle implements Comparable<FileHandle> {
-    File file;
-    PuzzleMeta meta;
+    public File file;
+    public PuzzleMeta meta;
 
-    FileHandle(File f, PuzzleMeta meta) {
+    public FileHandle(File f, PuzzleMeta meta) {
         this.file = f;
         this.meta = meta;
     }
@@ -34,11 +37,15 @@ public class FileHandle implements Comparable<FileHandle> {
         }
     }
 
-    String getCaption() {
+    public boolean isUpdatable() {
+        return meta.updatable;
+    }
+
+    public String getCaption() {
         return (meta == null) ? "" : meta.title;
     }
 
-    LocalDate getDate() {
+    public LocalDate getDate() {
         if (meta == null) {
             return Instant.ofEpochMilli(file.lastModified())
                         .atZone(ZoneId.systemDefault())
@@ -48,19 +55,19 @@ public class FileHandle implements Comparable<FileHandle> {
         }
     }
 
-    int getComplete() {
+    public int getComplete() {
         return (meta == null) ? 0 : (meta.updatable ? (-1) : meta.percentComplete);
     }
 
-    int getFilled() {
+    public int getFilled() {
         return (meta == null) ? 0 : (meta.updatable ? (-1) : meta.percentFilled);
     }
 
-    String getSource() {
+    public String getSource() {
         return ((meta == null) || (meta.source == null)) ? "Unknown" : meta.source;
     }
 
-    String getTitle() {
+    public String getTitle() {
         return ((meta == null) || (meta.source == null) || (meta.source.length() == 0))
         ? file.getName()
               .substring(0, file.getName().lastIndexOf(".")) : meta.source;
@@ -69,5 +76,24 @@ public class FileHandle implements Comparable<FileHandle> {
     @Override
     public String toString(){
         return file.getAbsolutePath();
+    }
+
+    public Uri getUri() { return Uri.fromFile(file); }
+
+    public void reloadMeta() throws IOException {
+        meta = IO.meta(file);
+    }
+
+    public void delete(){
+        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
+        file.delete();
+        metaFile.delete();
+    }
+
+    public void moveTo(DirHandle dirHandle){
+        File directory = dirHandle.getFile();
+        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
+        file.renameTo(new File(directory, file.getName()));
+        metaFile.renameTo(new File(directory, metaFile.getName()));
     }
 }
