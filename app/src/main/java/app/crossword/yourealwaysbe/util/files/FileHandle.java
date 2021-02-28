@@ -15,6 +15,10 @@ public class FileHandle implements Comparable<FileHandle> {
     public File file;
     public PuzzleMeta meta;
 
+    public FileHandle(File f) {
+        this(f, null);
+    }
+
     public FileHandle(File f, PuzzleMeta meta) {
         this.file = f;
         this.meta = meta;
@@ -38,7 +42,7 @@ public class FileHandle implements Comparable<FileHandle> {
     }
 
     public boolean isUpdatable() {
-        return meta.updatable;
+        return (meta == null) ? false : meta.updatable;
     }
 
     public String getCaption() {
@@ -79,6 +83,8 @@ public class FileHandle implements Comparable<FileHandle> {
     }
 
     public Uri getUri() { return Uri.fromFile(file); }
+
+    public String getName() { return file.getName(); }
 
     public void reloadMeta() throws IOException {
         meta = IO.meta(file);

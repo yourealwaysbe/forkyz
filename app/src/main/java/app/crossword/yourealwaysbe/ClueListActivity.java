@@ -32,7 +32,6 @@ import app.crossword.yourealwaysbe.view.ScrollingImageView.ClickListener;
 import app.crossword.yourealwaysbe.view.ScrollingImageView.Point;
 import app.crossword.yourealwaysbe.view.ScrollingImageView;
 
-import java.io.File;
 import java.io.IOException;
 
 public class ClueListActivity extends PuzzleActivity

@@ -8,14 +8,15 @@ import android.os.Environment;
 import android.util.DisplayMetrics;
 import androidx.preference.PreferenceManager;
 
+import app.crossword.yourealwaysbe.io.IO;
+import app.crossword.yourealwaysbe.puz.Playboard;
+import app.crossword.yourealwaysbe.puz.Puzzle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
+import app.crossword.yourealwaysbe.view.PlayboardRenderer;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
-import app.crossword.yourealwaysbe.io.IO;
-import app.crossword.yourealwaysbe.puz.Puzzle;
-import app.crossword.yourealwaysbe.puz.Playboard;
-import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
-import app.crossword.yourealwaysbe.view.PlayboardRenderer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +36,7 @@ public class ForkyzApplication extends Application {
     public static String PUZZLE_DOWNLOAD_CHANNEL_ID = "forkyz.downloads";
     private static ForkyzApplication INSTANCE;
     private Playboard board;
-    private File baseFile;
+    private FileHandle baseFile;
     private PlayboardRenderer renderer;
     public static File DEBUG_DIR;
     public static File CROSSWORDS = new File(
@@ -46,7 +47,7 @@ public class ForkyzApplication extends Application {
     /**
      * Set the board and base file of the puzzle loaded on it
      */
-    public void setBoard(Playboard board, File baseFile){
+    public void setBoard(Playboard board, FileHandle baseFile){
         this.board = board;
         this.baseFile = baseFile;
     }
@@ -55,12 +56,12 @@ public class ForkyzApplication extends Application {
          return board;
     }
 
-    public File getBaseFile() {
+    public FileHandle getBaseFile() {
         return baseFile;
     }
 
     public void saveBoard() throws IOException {
-        File baseFile = getBaseFile();
+        FileHandle baseFile = getBaseFile();
         if (baseFile == null)
             throw new IOException("No base file to save puzzle to.");
 

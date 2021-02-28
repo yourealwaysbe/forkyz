@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,7 +100,7 @@ public class PuzzleDownloadListener implements DownloadListener {
             fout = new FileOutputStream(outputFile);
             byte[] buffer = new byte[1024];
             int len = 0;
-            
+
             while ((len = in.read(buffer)) != -1) {
                 fout.write(buffer, 0, len);
             }

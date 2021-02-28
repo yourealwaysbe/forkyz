@@ -7,13 +7,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
-import app.crossword.yourealwaysbe.io.IO;
-import app.crossword.yourealwaysbe.puz.Playboard;
-import app.crossword.yourealwaysbe.puz.Playboard.Word;
-import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.io.IO;
+import app.crossword.yourealwaysbe.puz.Playboard.Word;
+import app.crossword.yourealwaysbe.puz.Playboard;
+import app.crossword.yourealwaysbe.puz.Puzzle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +29,6 @@ public abstract class PuzzleActivity
         = "preserveCorrectLettersInShowErrors";
     public static final String DONT_DELETE_CROSSING = "dontDeleteCrossing";
 
-    private File baseFile;
     private ImaginaryTimer timer;
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -181,11 +180,7 @@ public abstract class PuzzleActivity
         return timer;
     }
 
-    protected void setBaseFile(File baseFile) {
-        this.baseFile = baseFile;
-    }
-
-    protected File getBaseFile() {
+    protected FileHandle getBaseFile() {
         return ForkyzApplication.getInstance().getBaseFile();
     }
 

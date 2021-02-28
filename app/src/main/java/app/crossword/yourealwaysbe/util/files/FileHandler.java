@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import android.app.Activity;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
 
@@ -37,6 +38,10 @@ public class FileHandler {
                 "crosswords/archive"
             )
         );
+    }
+
+    public FileHandle getFileHandle(Uri uri) {
+        return new FileHandle(new File(uri.getPath()));
     }
 
     public boolean isStorageMounted() {
