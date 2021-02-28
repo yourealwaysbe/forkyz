@@ -110,22 +110,26 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         @Override
-        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+        public boolean onActionItemClicked(
+            ActionMode actionMode, MenuItem menuItem
+        ) {
+            FileHandler fileHandler = getFileHandler();
+
             if(menuItem.getTitle().equals("Delete")){
                 for(FileHandle handle : selected){
-                    handle.delete();
+                    fileHandler.delete(handle);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Archive")){
                 for(FileHandle handle : selected){
-                    handle.moveTo(archiveFolder);
+                    fileHandler.moveTo(handle, archiveFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Un-archive")){
                 for(FileHandle handle : selected){
-                    handle.moveTo(crosswordsFolder);
+                    fileHandler.moveTo(handle, crosswordsFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
@@ -236,6 +240,9 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final FileHandler fileHandler = getFileHandler();
+
         this.setTitle("Puzzles");
         //this.utils.hideTitleOnPortrait(this);
         setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
@@ -272,12 +279,12 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 FileHandle handle = (FileHandle) ((FileViewHolder) viewHolder).itemView.getTag();
                 System.out.println(" SWIPED "+handle.file.getAbsolutePath());
                 if("DELETE".equals(prefs.getString("swipeAction", "DELETE"))) {
-                    handle.delete();
+                    fileHander.delete(handle);
                 } else {
                     if (viewArchive) {
-                        handle.moveTo(crosswordsFolder);
+                        fileHandler.moveTo(handle, crosswordsFolder);
                     } else {
-                        handle.moveTo(archiveFolder);
+                        fileHandler.moveTo(handle, archiveFolder);
                     }
                 }
                 currentAdapter.onItemDismiss(viewHolder.getAdapterPosition());
@@ -358,7 +365,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     }
 
     private void startInitialActivityOrFinishLoading() {
-        if (!crosswordsFolder.exists()) {
+        if (!getFileHandler().exists(crosswordsFolder)) {
             this.downloadTen();
 
             Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("file:///android_asset/welcome.html"), this,
@@ -501,6 +508,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     }
 
     private void cleanup() {
+        FileHandler fileHander = getFileHandler();
+
         boolean deleteOnCleanup = prefs.getBoolean("deleteOnCleanup", false);
         LocalDate maxAge = getMaxAge(prefs.getString("cleanupAge", "2"));
         LocalDate archiveMaxAge = getMaxAge(prefs.getString("archiveCleanupAge", "-1"));
@@ -509,7 +518,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         ArrayList<FileHandle> toDelete = new ArrayList<FileHandle>();
 
         if (maxAge != null) {
-            FileHandle[] puzFiles = crosswordsFolder.getPuzFiles();
+            FileHandle[] puzFiles = fileHander.getPuzFiles(crosswordsFolder);
             Arrays.sort(puzFiles);
             for (FileHandle h : puzFiles) {
                 if ((h.getComplete() == 100) || (h.getDate().isBefore(maxAge))) {
@@ -523,7 +532,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         if (archiveMaxAge != null) {
-            FileHandle[] puzFiles = archiveFolder.getPuzFiles();
+            FileHandle[] puzFiles = fileHander.getPuzFiles(archiveFolder);
             Arrays.sort(puzFiles);
             for (FileHandle h : puzFiles) {
                 if (h.getDate().isBefore(archiveMaxAge)) {

@@ -1,9 +1,7 @@
 package app.crossword.yourealwaysbe.util.files;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -24,6 +22,10 @@ public class FileHandle implements Comparable<FileHandle> {
     public FileHandle(File f, PuzzleMeta meta) {
         this.file = f;
         this.meta = meta;
+    }
+
+    File getFile() {
+        return file;
     }
 
     public int compareTo(FileHandle another) {
@@ -88,24 +90,7 @@ public class FileHandle implements Comparable<FileHandle> {
 
     public String getName() { return file.getName(); }
 
-    public void reloadMeta() throws IOException {
-        meta = IO.meta(file);
-    }
-
-    public void delete(){
-        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
-        file.delete();
-        metaFile.delete();
-    }
-
-    public void moveTo(DirHandle dirHandle){
-        File directory = dirHandle.getFile();
-        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
-        file.renameTo(new File(directory, file.getName()));
-        metaFile.renameTo(new File(directory, metaFile.getName()));
-    }
-
-    public OutputStream getOutputStream() throws IOException {
-        return new FileOutputStream(file);
+    void setMeta(PuzzleMeta meta) {
+        this.meta = meta;
     }
 }
