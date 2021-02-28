@@ -51,5 +51,9 @@ public class DirHandle {
 
         return files.toArray(new FileHandle[files.size()]);
     }
+
+    public FileHandle getFileHandle(String fileName) {
+        return new FileHandle(new File(getFile(), fileName));
+    }
 }
 

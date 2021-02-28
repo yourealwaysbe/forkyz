@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,13 +22,16 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import app.crossword.yourealwaysbe.util.files.DirHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
 
-public class HttpDownloadActivity extends AppCompatActivity {
+public class HttpDownloadActivity extends ForkyzActivity {
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1001;
 
-    private File crosswordsFolder = new File(Environment.getExternalStorageDirectory(), "crosswords");
+    private DirHandle crosswordsFolder
+        = getFileHandler().getCrosswordsDirectory();
 
     /**
     * Copies the data from an InputStream object to an OutputStream object.
@@ -101,7 +103,8 @@ public class HttpDownloadActivity extends AppCompatActivity {
     }
 
     private void initializeDownload() {
-        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+        FileHandler fileHandler = getFileHandler();
+        if (!fileHandler.isStorageMounted() || fileHandler.isStorageFull()) {
             showSDCardHelp();
             finish();
 
@@ -128,7 +131,8 @@ public class HttpDownloadActivity extends AppCompatActivity {
 
             InputStream is = response.body().byteStream();
             File puzFile = new File(crosswordsFolder, filename);
-            FileOutputStream fos = new FileOutputStream(puzFile);
+            OutputStream fos
+                = crosswordsFolder.getFileHandle(filename).getOutputStream();
             copyStream(is, fos);
             fos.close();
 
@@ -142,11 +146,5 @@ public class HttpDownloadActivity extends AppCompatActivity {
         }
 
         finish();
-    }
-
-    private void showSDCardHelp() {
-        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("file:///android_asset/sdcard.html"), this,
-                HTMLActivity.class);
-        this.startActivity(i);
     }
 }

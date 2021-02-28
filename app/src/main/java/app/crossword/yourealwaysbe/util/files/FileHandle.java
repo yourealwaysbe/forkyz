@@ -1,7 +1,9 @@
 package app.crossword.yourealwaysbe.util.files;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -101,5 +103,9 @@ public class FileHandle implements Comparable<FileHandle> {
         File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
         file.renameTo(new File(directory, file.getName()));
         metaFile.renameTo(new File(directory, metaFile.getName()));
+    }
+
+    public OutputStream getOutputStream() throws IOException {
+        return new FileOutputStream(file);
     }
 }
