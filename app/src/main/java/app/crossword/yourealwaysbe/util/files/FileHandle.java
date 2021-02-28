@@ -28,6 +28,14 @@ public class FileHandle implements Comparable<FileHandle> {
         return file;
     }
 
+    File getMetaFile() {
+        return new File(
+            file.getParentFile(),
+            file.getName().substring(0, file.getName().lastIndexOf("."))
+                + ".forkyz"
+        );
+    }
+
     public int compareTo(FileHandle another) {
         FileHandle h = (FileHandle) another;
 

@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.util.NightModeHelper;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
@@ -28,15 +29,18 @@ public class ForkyzActivity extends AppCompatActivity {
             .getInstance();
     protected SharedPreferences prefs;
     public NightModeHelper nightMode;
-    private FileHandler fileHandler = new FileHandler(this);
 
-    protected FileHandler getFileHandler() { return fileHandler; }
+    protected FileHandler getFileHandler() {
+        return ForkyzApplication.getInstance().getFileHandler();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         this.prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        final FileHandler fileHandler = getFileHandler();
 
         if (!fileHandler.isStorageMounted()) {
             showSDCardHelp();
@@ -81,7 +85,7 @@ public class ForkyzActivity extends AppCompatActivity {
             this.utils.restoreNightMode(this);
         }
 
-        if (!fileHandler.isStorageMounted()) {
+        if (!getFileHandler().isStorageMounted()) {
             showSDCardHelp();
             finish();
             return;

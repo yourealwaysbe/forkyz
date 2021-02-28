@@ -32,24 +32,25 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import app.crossword.yourealwaysbe.forkyz.BuildConfig;
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.forkyz.R;
 import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.net.Downloader;
 import app.crossword.yourealwaysbe.net.Downloaders;
 import app.crossword.yourealwaysbe.net.Scrapers;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
-import app.crossword.yourealwaysbe.forkyz.BuildConfig;
-import app.crossword.yourealwaysbe.forkyz.R;
-import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.util.files.Accessor;
+import app.crossword.yourealwaysbe.util.files.DirHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.view.CircleProgressBar;
+import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
 import app.crossword.yourealwaysbe.view.recycler.RecyclerItemClickListener;
 import app.crossword.yourealwaysbe.view.recycler.RemovableRecyclerViewAdapter;
 import app.crossword.yourealwaysbe.view.recycler.SeparatedRecyclerViewAdapter;
 import app.crossword.yourealwaysbe.view.recycler.ShowHideOnScroll;
-import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
-import app.crossword.yourealwaysbe.util.files.Accessor;
-import app.crossword.yourealwaysbe.util.files.DirHandle;
-import app.crossword.yourealwaysbe.util.files.FileHandle;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -279,7 +280,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 FileHandle handle = (FileHandle) ((FileViewHolder) viewHolder).itemView.getTag();
                 System.out.println(" SWIPED "+handle.file.getAbsolutePath());
                 if("DELETE".equals(prefs.getString("swipeAction", "DELETE"))) {
-                    fileHander.delete(handle);
+                    fileHandler.delete(handle);
                 } else {
                     if (viewArchive) {
                         fileHandler.moveTo(handle, crosswordsFolder);
@@ -398,7 +399,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         } else {
             if (lastOpenedHandle != null) {
                 try {
-                    lastOpenedHandle.reloadMeta();
+                    getFileHandler().reloadMeta(lastOpenedHandle);
 
                     CircleProgressBar bar = (CircleProgressBar) lastOpenedView.findViewById(R.id.puzzle_progress);
 
@@ -428,8 +429,9 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
     private SeparatedRecyclerViewAdapter<FileViewHolder> buildList(DirHandle directory, Accessor accessor) {
         long incept = System.currentTimeMillis();
+        FileHandler fileHandler = getFileHandler();
 
-        if (!directory.exists()) {
+        if (!fileHandler.exists(directory)) {
             showSDCardHelp();
             return new SeparatedRecyclerViewAdapter<FileViewHolder>(
                 R.layout.puzzle_list_header,
@@ -447,7 +449,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
             }
         }
 
-        FileHandle[] puzFiles = directory.getPuzFiles(sourceMatch);
+        FileHandle[] puzFiles = fileHandler.getPuzFiles(directory, sourceMatch);
 
         try {
             Arrays.sort(puzFiles, accessor);
@@ -508,7 +510,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     }
 
     private void cleanup() {
-        FileHandler fileHander = getFileHandler();
+        final FileHandler fileHandler = getFileHandler();
 
         boolean deleteOnCleanup = prefs.getBoolean("deleteOnCleanup", false);
         LocalDate maxAge = getMaxAge(prefs.getString("cleanupAge", "2"));
@@ -518,7 +520,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         ArrayList<FileHandle> toDelete = new ArrayList<FileHandle>();
 
         if (maxAge != null) {
-            FileHandle[] puzFiles = fileHander.getPuzFiles(crosswordsFolder);
+            FileHandle[] puzFiles = fileHandler.getPuzFiles(crosswordsFolder);
             Arrays.sort(puzFiles);
             for (FileHandle h : puzFiles) {
                 if ((h.getComplete() == 100) || (h.getDate().isBefore(maxAge))) {
@@ -532,7 +534,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         if (archiveMaxAge != null) {
-            FileHandle[] puzFiles = fileHander.getPuzFiles(archiveFolder);
+            FileHandle[] puzFiles = fileHandler.getPuzFiles(archiveFolder);
             Arrays.sort(puzFiles);
             for (FileHandle h : puzFiles) {
                 if (h.getDate().isBefore(archiveMaxAge)) {
@@ -542,11 +544,11 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         for (FileHandle h : toDelete) {
-            h.delete();
+            fileHandler.delete(h);
         }
 
         for (FileHandle h : toArchive) {
-            h.moveTo(this.archiveFolder);
+            fileHandler.moveTo(h, this.archiveFolder);
         }
 
         render();
@@ -607,13 +609,17 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
         utils.clearBackgroundDownload(prefs);
 
+        final FileHandler fileHandler = getFileHandler();
         final DirHandle directory = viewArchive ? BrowseActivity.this.archiveFolder : BrowseActivity.this.crosswordsFolder;
         //Only spawn a thread if there are a lot of puzzles.
         // Using SDK rev as a proxy to decide whether you have a slow processor or not.
 
-        if (((android.os.Build.VERSION.SDK_INT >= 5) && directory.exists() && (directory.numFiles() > 500)) ||
-                ((android.os.Build.VERSION.SDK_INT < 5) && directory.exists() && (directory.numFiles() > 160))) {
+        boolean dirExists = fileHandler.exists(directory);
+        int numFiles = fileHandler.numFiles(directory);
+        int minFilesForThread
+            = (android.os.Build.VERSION.SDK_INT >= 5) ? 500 : 160;
 
+        if (dirExists && numFiles > minFilesForThread) {
             final View progressBar
                 = BrowseActivity.this.findViewById( R.id.please_wait_notice);
             progressBar.setVisibility(View.VISIBLE);

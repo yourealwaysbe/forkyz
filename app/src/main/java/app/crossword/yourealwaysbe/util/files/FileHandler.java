@@ -1,7 +1,10 @@
 
 package app.crossword.yourealwaysbe.util.files;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,6 +18,7 @@ import android.os.Environment;
 import android.os.StatFs;
 
 import app.crossword.yourealwaysbe.io.IO;
+import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 
 /**
@@ -25,11 +29,16 @@ public class FileHandler {
     private static final Logger LOGGER
         = Logger.getLogger(FileHandler.class.getCanonicalName());
 
-    private Activity activity;
-
-    public FileHandler(Activity activity) {
-        this.activity = activity;
+    private static File TEMP_FOLDER;
+    static {
+        try {
+            TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir", "tmp"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    public FileHandler() { }
 
     public DirHandle getCrosswordsDirectory() {
         return new DirHandle(
@@ -69,6 +78,10 @@ public class FileHandler {
 
     public boolean exists(DirHandle dir) {
         return dir.getFile().exists();
+    }
+
+    public boolean exists(FileHandle file) {
+        return file.getFile().exists();
     }
 
     public int numFiles(DirHandle dir) {
@@ -118,7 +131,7 @@ public class FileHandler {
 
     public void delete(FileHandle fileHandle){
         File file = fileHandle.getFile();
-        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
+        File metaFile = fileHandle.getMetaFile();
         file.delete();
         metaFile.delete();
     }
@@ -126,7 +139,7 @@ public class FileHandler {
     public void moveTo(FileHandle fileHandle, DirHandle dirHandle){
         File file = fileHandle.getFile();
         File directory = dirHandle.getFile();
-        File metaFile = new File(file.getParentFile(), file.getName().substring(0, file.getName().lastIndexOf(".")) + ".forkyz");
+        File metaFile = fileHandle.getMetaFile();
         file.renameTo(new File(directory, file.getName()));
         metaFile.renameTo(new File(directory, metaFile.getName()));
     }
@@ -134,5 +147,41 @@ public class FileHandler {
     public OutputStream getOutputStream(FileHandle fileHandle)
             throws IOException {
         return new FileOutputStream(fileHandle.getFile());
+    }
+
+    public static Puzzle load(FileHandle fileHandle) throws IOException {
+        File baseFile = fileHandle.getFile();
+        File metaFile = fileHandle.getMetaFile();
+        FileInputStream fis = new FileInputStream(baseFile);
+        Puzzle puz = IO.loadNative(new DataInputStream(fis));
+        fis.close();
+
+        if (metaFile.exists()) {
+            fis = new FileInputStream(metaFile);
+            IO.readCustom(puz, new DataInputStream(fis));
+            fis.close();
+        }
+
+        return puz;
+    }
+
+    public static void save(Puzzle puz, FileHandle fileHandle)
+            throws IOException {
+        File baseFile = fileHandle.getFile();
+        long incept = System.currentTimeMillis();
+        File metaFile = fileHandle.getMetaFile();
+
+        File puztemp = new File(TEMP_FOLDER, baseFile.getName());
+        File metatemp = new File(TEMP_FOLDER, metaFile.getName());
+
+        FileOutputStream puzzle = new FileOutputStream(puztemp);
+        FileOutputStream meta = new FileOutputStream(metatemp);
+
+        IO.save(puz, new DataOutputStream(puzzle), new DataOutputStream(meta));
+
+        puztemp.renameTo(baseFile);
+        metatemp.renameTo(metaFile);
+        System.out.println("Save complete in "
+                + (System.currentTimeMillis() - incept));
     }
 }

@@ -12,6 +12,7 @@ import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -43,6 +44,12 @@ public class ForkyzApplication extends Application {
             Environment.getExternalStorageDirectory(), "crosswords");
     private SharedPreferences settings;
     private AtomicReference<PersistentCookieJar> cookieJar = new AtomicReference<>(null);
+
+    private FileHandler fileHandler = new FileHandler();
+
+    public FileHandler getFileHandler() {
+        return fileHandler;
+    }
 
     /**
      * Set the board and base file of the puzzle loaded on it

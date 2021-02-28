@@ -52,7 +52,7 @@ public class WebBrowserActivity extends ForkyzActivity {
         webSettings.setUseWideViewPort(true);
         webSettings.setJavaScriptEnabled(true);
 
-        mPDL = new PuzzleDownloadListener(this);
+        mPDL = new PuzzleDownloadListener(this, getFileHandler());
 
         mWebView.setWebViewClient(new WebViewClient() {
                 @Override

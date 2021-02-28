@@ -30,7 +30,6 @@ public class IO {
     public static final int DEFAULT_BUFFER_SIZE = 1024;
     public static final String FILE_MAGIC = "ACROSS&DOWN";
     public static final String VERSION_STRING = "1.2";
-    public static File TEMP_FOLDER;
     private static final Charset CHARSET = Charset.forName("Cp1252");
 
     // Extra Section IDs and markers
@@ -49,14 +48,6 @@ public class IO {
     private static final byte NOTE_TEXT = (byte) 0x02;
     private static final byte NOTE_ANAGRAM_SRC = (byte) 0x03;
     private static final byte NOTE_ANAGRAM_SOL = (byte) 0x04;
-
-    static {
-        try {
-            TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir", "tmp"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public static int cksum_region(byte[] data, int offset, int length,
                                    int cksum) {
@@ -79,22 +70,6 @@ public class IO {
         Puzzle puz = IO.loadNative(puzzleInput);
         puzzleInput.close();
         IO.readCustom(puz, metaInput);
-
-        return puz;
-    }
-
-    public static Puzzle load(File baseFile) throws IOException {
-        File metaFile = new File(baseFile.getParentFile(), baseFile.getName()
-                .substring(0, baseFile.getName().lastIndexOf(".")) + ".forkyz");
-        FileInputStream fis = new FileInputStream(baseFile);
-        Puzzle puz = IO.loadNative(new DataInputStream(fis));
-        fis.close();
-
-        if (metaFile.exists()) {
-            fis = new FileInputStream(metaFile);
-            IO.readCustom(puz, new DataInputStream(fis));
-            fis.close();
-        }
 
         return puz;
     }
@@ -377,25 +352,6 @@ public class IO {
         puzzleOutputStream.close();
         IO.writeCustom(puz, metaOutputStream);
         metaOutputStream.close();
-    }
-
-    public static void save(Puzzle puz, File baseFile) throws IOException {
-        long incept = System.currentTimeMillis();
-        File metaFile = new File(baseFile.getParentFile(), baseFile.getName()
-                .substring(0, baseFile.getName().lastIndexOf(".")) + ".forkyz");
-
-        File puztemp = new File(TEMP_FOLDER, baseFile.getName());
-        File metatemp = new File(TEMP_FOLDER, metaFile.getName());
-
-        FileOutputStream puzzle = new FileOutputStream(puztemp);
-        FileOutputStream meta = new FileOutputStream(metatemp);
-
-        IO.save(puz, new DataOutputStream(puzzle), new DataOutputStream(meta));
-
-        puztemp.renameTo(baseFile);
-        metatemp.renameTo(metaFile);
-        System.out.println("Save complete in "
-                + (System.currentTimeMillis() - incept));
     }
 
     public static void saveNative(Puzzle puz, DataOutputStream dos)

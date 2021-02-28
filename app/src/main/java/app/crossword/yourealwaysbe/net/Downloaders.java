@@ -12,10 +12,12 @@ import androidx.core.app.NotificationCompat;
 
 import app.crossword.yourealwaysbe.BrowseActivity;
 import app.crossword.yourealwaysbe.PlayActivity;
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
-import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -282,13 +284,16 @@ public class Downloaders {
         return null;
     }
 
-    public static boolean processDownloadedPuzzle(File downloaded,
-            PuzzleMeta meta) {
+    public static boolean processDownloadedPuzzle(
+        FileHandle downloaded, PuzzleMeta meta
+    ) {
         try {
             System.out.println("==PROCESSING " + downloaded + " hasmeta: "
                     + (meta != null));
 
-            Puzzle puz = IO.load(downloaded);
+            final FileHandler fileHandler
+                = ForkyzApplication.getInstance().getFileHandler();
+            final Puzzle puz = fileHandler.load(downloaded);
             if(puz == null){
                 return false;
             }

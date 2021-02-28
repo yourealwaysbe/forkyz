@@ -49,6 +49,7 @@ import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.util.KeyboardManager;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.view.ClueTabs;
 import app.crossword.yourealwaysbe.view.ForkyzKeyboard;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
@@ -120,6 +121,8 @@ public class PlayActivity extends PuzzleActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        final FileHandler fileHandler = getFileHandler();
+
         metrics = getResources().getDisplayMetrics();
         this.screenWidthInInches = (metrics.widthPixels > metrics.heightPixels ? metrics.widthPixels : metrics.heightPixels) / Math.round(160 * metrics.density);
 
@@ -152,8 +155,8 @@ public class PlayActivity extends PuzzleActivity
             Uri u = this.getIntent().getData();
 
             if (u != null && u.getScheme().equals("file")) {
-                baseFile = getFileHandler().getFileHandle(u);
-                puz = IO.load(baseFile);
+                baseFile = fileHandler.getFileHandle(u);
+                puz = fileHandler.load(baseFile);
             }
 
             if (puz == null || puz.getBoxes() == null) {
