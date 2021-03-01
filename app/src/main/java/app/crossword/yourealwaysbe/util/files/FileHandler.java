@@ -41,18 +41,25 @@ public class FileHandler {
     public FileHandler() { }
 
     public DirHandle getCrosswordsDirectory() {
-        return new DirHandle(
-            new File(Environment.getExternalStorageDirectory(), "crosswords")
-        );
+        File cwDir =
+            new File(Environment.getExternalStorageDirectory(), "crosswords");
+        cwDir.mkdirs();
+        return new DirHandle(cwDir);
     }
 
     public DirHandle getArchiveDirectory() {
-        return new DirHandle(
-            new File(
-                Environment.getExternalStorageDirectory(),
-                "crosswords/archive"
-            )
+        File arDir = new File(
+            Environment.getExternalStorageDirectory(),
+            "crosswords/archive"
         );
+        arDir.mkdirs();
+        return new DirHandle(arDir);
+    }
+
+    public DirHandle getTempDirectory(DirHandle baseDir) {
+        File tempDir = new File(baseDir.getFile(), "temp");
+        tempDir.mkdirs();
+        return new DirHandle(tempDir);
     }
 
     public FileHandle getFileHandle(Uri uri) {
@@ -86,6 +93,10 @@ public class FileHandler {
 
     public int numFiles(DirHandle dir) {
         return dir.getFile().list().length;
+    }
+
+    public Uri getUri(FileHandle f) {
+        return Uri.fromFile(f.getFile());
     }
 
     public FileHandle[] getPuzFiles(DirHandle dir) {

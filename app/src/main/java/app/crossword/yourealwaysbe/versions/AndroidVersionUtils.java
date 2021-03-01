@@ -12,84 +12,89 @@ import android.view.View;
 import app.crossword.yourealwaysbe.ForkyzActivity;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 import app.crossword.yourealwaysbe.util.NightModeHelper;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
 
-import java.io.File;
 import java.net.URL;
 import java.util.Map;
 
 public interface AndroidVersionUtils {
-	
-	void storeMetas(Uri uri, PuzzleMeta meta);
 
-	void setContext(Context ctx);
+    void storeMetas(Uri uri, PuzzleMeta meta);
 
-	boolean downloadFile(URL url, File destination,
-						 Map<String, String> headers, boolean notification, String title);
+    void setContext(Context ctx);
 
-	void finishOnHomeButton(AppCompatActivity a);
+    boolean downloadFile(
+        URL url,
+        FileHandle destination,
+        Map<String, String> headers,
+        boolean notification,
+        String title
+    );
 
-	void holographic(AppCompatActivity playActivity);
+    void finishOnHomeButton(AppCompatActivity a);
 
-	void onActionBarWithText(MenuItem a);
+    void holographic(AppCompatActivity playActivity);
 
-	void onActionBarWithText(SubMenu reveal);
+    void onActionBarWithText(MenuItem a);
 
-	void restoreNightMode(ForkyzActivity forkyzActivity);
+    void onActionBarWithText(SubMenu reveal);
 
-	void restoreNightMode(NightModeHelper nightMode);
+    void restoreNightMode(ForkyzActivity forkyzActivity);
 
-	class Factory {
-		private static AndroidVersionUtils INSTANCE;
-		
-		public static AndroidVersionUtils getInstance() {
-			if(INSTANCE != null){
-				return INSTANCE;
-			}
-			System.out.println("Creating utils for version: "
-					+ android.os.Build.VERSION.SDK_INT);
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				System.out.println("Using Oreo");
-				return INSTANCE = new OreoUtil();
-			}
-			else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-				System.out.println("Using Lollipop");
-				return INSTANCE = new LollipopUtil();
-			}
-			else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				System.out.println("Using Honeycomb");
-				return INSTANCE = new HoneycombUtil();
-			} else {
-				System.out.println("Using Gingerbread");
-				return INSTANCE = new GingerbreadUtil();
-			}
-		}
-	}
+    void restoreNightMode(NightModeHelper nightMode);
 
-	View onActionBarCustom(AppCompatActivity a, int id);
-	
-	void hideWindowTitle(AppCompatActivity a);
-	
-	void hideActionBar(AppCompatActivity a);
+    class Factory {
+        private static AndroidVersionUtils INSTANCE;
+
+        public static AndroidVersionUtils getInstance() {
+            if(INSTANCE != null){
+                return INSTANCE;
+            }
+            System.out.println("Creating utils for version: "
+                    + android.os.Build.VERSION.SDK_INT);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                System.out.println("Using Oreo");
+                return INSTANCE = new OreoUtil();
+            }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                System.out.println("Using Lollipop");
+                return INSTANCE = new LollipopUtil();
+            }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                System.out.println("Using Honeycomb");
+                return INSTANCE = new HoneycombUtil();
+            } else {
+                System.out.println("Using Gingerbread");
+                return INSTANCE = new GingerbreadUtil();
+            }
+        }
+    }
+
+    View onActionBarCustom(AppCompatActivity a, int id);
+
+    void hideWindowTitle(AppCompatActivity a);
+
+    void hideActionBar(AppCompatActivity a);
 
     void onActionBarWithoutText(MenuItem a);
 
     void hideTitleOnPortrait(AppCompatActivity a);
 
-	void nextNightMode(ForkyzActivity activity);
+    void nextNightMode(ForkyzActivity activity);
 
-	boolean isNightModeAvailable();
+    boolean isNightModeAvailable();
 
-	// This has a dependency on JobScheduler which is only available in SDK version 21.
-	//
-	// TODO: It might be possible to replicate this functionality on older versions using
-	// AlarmManager.
-	boolean isBackgroundDownloadAvaliable();
+    // This has a dependency on JobScheduler which is only available in SDK version 21.
+    //
+    // TODO: It might be possible to replicate this functionality on older versions using
+    // AlarmManager.
+    boolean isBackgroundDownloadAvaliable();
 
-	// Checks whether a background download may have updated the available puzzles, requiring a
-	// UI refresh.
-	boolean checkBackgroundDownload(SharedPreferences prefs, boolean hasWritePermissions);
+    // Checks whether a background download may have updated the available puzzles, requiring a
+    // UI refresh.
+    boolean checkBackgroundDownload(SharedPreferences prefs, boolean hasWritePermissions);
 
-	void clearBackgroundDownload(SharedPreferences prefs);
+    void clearBackgroundDownload(SharedPreferences prefs);
 
-	void createNotificationChannel(Context context);
+    void createNotificationChannel(Context context);
 }

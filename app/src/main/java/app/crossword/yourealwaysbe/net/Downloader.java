@@ -6,6 +6,8 @@ import java.time.LocalDate;
 
 import android.content.Context;
 
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 public interface Downloader {
     // These lists must be sorted for binary search.
@@ -33,8 +35,6 @@ public interface Downloader {
         DayOfWeek.FRIDAY,
         DayOfWeek.SATURDAY
     };
-
-    File DEFERRED_FILE = new File(".");
 
     void setContext(Context context);
 
