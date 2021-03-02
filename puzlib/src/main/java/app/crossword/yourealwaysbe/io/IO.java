@@ -213,20 +213,6 @@ public class IO {
         return puz;
     }
 
-    public static PuzzleMeta meta(File baseFile) throws IOException {
-        File metaFile = new File(baseFile.getParentFile(), baseFile.getName()
-                .substring(0, baseFile.getName().lastIndexOf(".")) + ".forkyz");
-        if (metaFile.isFile()) {
-            FileInputStream fis = new FileInputStream(metaFile);
-            PuzzleMeta m = IO.readMeta(new DataInputStream(fis));
-            fis.close();
-
-            return m;
-        } else {
-            return null;
-        }
-    }
-
     public static void readCustom(Puzzle puz, DataInputStream is)
             throws IOException {
         int version = is.read();

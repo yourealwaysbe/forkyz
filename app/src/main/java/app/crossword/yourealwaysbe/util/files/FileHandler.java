@@ -7,7 +7,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -99,7 +103,15 @@ public class FileHandler {
         return Uri.fromFile(f.getFile());
     }
 
-    public FileHandle[] getPuzFiles(DirHandle dir) {
+    public String getName(FileHandle f) {
+        return f.getFile().getName();
+    }
+
+    public long getLastModified(FileHandle file) {
+        return file.getFile().lastModified();
+    }
+
+    public PuzMetaFile[] getPuzFiles(DirHandle dir) {
         return getPuzFiles(dir, null);
     }
 
@@ -108,20 +120,24 @@ public class FileHandler {
      *
      * Matches any source if sourceMatch is null
      */
-    public FileHandle[] getPuzFiles(DirHandle dirHandle, String sourceMatch) {
+    public PuzMetaFile[] getPuzFiles(DirHandle dirHandle, String sourceMatch) {
         File dir = dirHandle.getFile();
-        ArrayList<FileHandle> files = new ArrayList<FileHandle>();
+        ArrayList<PuzMetaFile> files = new ArrayList<>();
         for (File f : dir.listFiles()) {
             if (f.getName().endsWith(".puz")) {
                 PuzzleMeta m = null;
 
                 try {
-                    m = IO.meta(f);
+                    m = IO.readMeta(
+                        new DataInputStream(
+                            new FileInputStream(f)
+                        )
+                    );
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                FileHandle h = new FileHandle(f, m);
+                PuzMetaFile h = new PuzMetaFile(new FileHandle(f), m);
 
                 if ((sourceMatch == null) || sourceMatch.equals(h.getSource())) {
                     files.add(h);
@@ -129,30 +145,46 @@ public class FileHandler {
             }
         }
 
-        return files.toArray(new FileHandle[files.size()]);
+        return files.toArray(new PuzMetaFile[files.size()]);
     }
 
     public FileHandle getFileHandle(DirHandle dir, String fileName) {
         return new FileHandle(new File(dir.getFile(), fileName));
     }
 
-    public void reloadMeta(FileHandle fileHandle) throws IOException {
-        fileHandle.setMeta(IO.meta(fileHandle.getFile()));
+    public void reloadMeta(PuzMetaFile fileHandle) throws IOException {
+        fileHandle.setMeta(
+            IO.readMeta(
+                new DataInputStream(
+                    getInputStream(fileHandle.getFileHandle())
+                )
+            )
+        );
     }
 
     public void delete(FileHandle fileHandle){
-        File file = fileHandle.getFile();
-        File metaFile = fileHandle.getMetaFile();
-        file.delete();
-        metaFile.delete();
+        fileHandle.getFile().delete();
+    }
+
+    public void delete(PuzMetaFile pm) {
+        delete(pm.getFileHandle());
+        File metaFile = getMetaFile(pm);
+        if (metaFile.exists())
+            metaFile.delete();
     }
 
     public void moveTo(FileHandle fileHandle, DirHandle dirHandle){
         File file = fileHandle.getFile();
         File directory = dirHandle.getFile();
-        File metaFile = fileHandle.getMetaFile();
         file.renameTo(new File(directory, file.getName()));
-        metaFile.renameTo(new File(directory, metaFile.getName()));
+    }
+
+    public void moveTo(PuzMetaFile pm, DirHandle dirHandle){
+        moveTo(pm.getFileHandle(), dirHandle);
+        File directory = dirHandle.getFile();
+        File metaFile = getMetaFile(pm);
+        if (metaFile.exists())
+            metaFile.renameTo(new File(directory, metaFile.getName()));
     }
 
     public OutputStream getOutputStream(FileHandle fileHandle)
@@ -160,9 +192,20 @@ public class FileHandler {
         return new FileOutputStream(fileHandle.getFile());
     }
 
-    public static Puzzle load(FileHandle fileHandle) throws IOException {
+    public InputStream getInputStream(FileHandle fileHandle)
+            throws IOException {
+        return new FileInputStream(fileHandle.getFile());
+    }
+
+    public LocalDate getModifiedDate(FileHandle file) {
+        return Instant.ofEpochMilli(file.getFile().lastModified())
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+    }
+
+    public Puzzle load(FileHandle fileHandle) throws IOException {
         File baseFile = fileHandle.getFile();
-        File metaFile = fileHandle.getMetaFile();
+        File metaFile = getMetaFile(baseFile);
         FileInputStream fis = new FileInputStream(baseFile);
         Puzzle puz = IO.loadNative(new DataInputStream(fis));
         fis.close();
@@ -176,11 +219,11 @@ public class FileHandler {
         return puz;
     }
 
-    public static void save(Puzzle puz, FileHandle fileHandle)
+    public void save(Puzzle puz, FileHandle fileHandle)
             throws IOException {
         File baseFile = fileHandle.getFile();
         long incept = System.currentTimeMillis();
-        File metaFile = fileHandle.getMetaFile();
+        File metaFile = getMetaFile(baseFile);
 
         File puztemp = new File(TEMP_FOLDER, baseFile.getName());
         File metatemp = new File(TEMP_FOLDER, metaFile.getName());
@@ -194,5 +237,17 @@ public class FileHandler {
         metatemp.renameTo(metaFile);
         System.out.println("Save complete in "
                 + (System.currentTimeMillis() - incept));
+    }
+
+    private File getMetaFile(PuzMetaFile pm) {
+        return getMetaFile(pm.getFileHandle().getFile());
+    }
+
+    private File getMetaFile(File puzFile) {
+        return new File(
+            puzFile.getParentFile(),
+            puzFile.getName().substring(0, puzFile.getName().lastIndexOf("."))
+                + ".forkyz"
+        );
     }
 }

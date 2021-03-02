@@ -350,7 +350,7 @@ public class PlayActivity extends PuzzleActivity
             String filename = null;
 
             try {
-                filename = this.getBaseFile().getName();
+                filename = fileHandler.getName(this.getBaseFile());
             } catch (Exception ee) {
                 e.printStackTrace();
             }
@@ -1095,8 +1095,10 @@ public class PlayActivity extends PuzzleActivity
 
                 TextView filename
                     = view.findViewById(R.id.puzzle_info_filename);
+                FileHandler fileHandler
+                    = ForkyzApplication.getInstance().getFileHandler();
                 filename.setText(
-                    activity.getBaseFile().getUri().toString()
+                    fileHandler.getUri(activity.getBaseFile()).toString()
                 );
 
                 addNotes(view);
