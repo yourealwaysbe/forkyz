@@ -35,24 +35,6 @@ public abstract class AbstractDownloader implements Downloader {
             .getFileHandler()
             .getArchiveDirectory();
 
-
-    public static class DownloadResult {
-        private FileHandle fileHandle;
-        private boolean isDeferred;
-
-        public DownloadResult(FileHandle fileHandle) {
-            this.fileHandle = fileHandle;
-            this.isDeferred = false;
-        }
-
-        public DownloadResult() {
-            this.isDeferred = true;
-        }
-
-        public FileHandle getFileHandle() { return fileHandle; }
-        public boolean getIsDeferred() { return isDeferred; }
-    }
-
     protected static final Map<String, String> EMPTY_MAP = Collections.emptyMap();
     protected DirHandle downloadDirectory;
     protected String baseUrl;
@@ -97,7 +79,7 @@ public abstract class AbstractDownloader implements Downloader {
 
     protected abstract String createUrlSuffix(LocalDate date);
 
-    protected DownloadResult download(
+    protected Downloader.DownloadResult download(
         LocalDate date,
         String urlSuffix,
         Map<String, String> headers
@@ -106,7 +88,7 @@ public abstract class AbstractDownloader implements Downloader {
         return download(date, urlSuffix, headers, true);
     }
 
-    protected DownloadResult download(
+    protected Downloader.DownloadResult download(
         LocalDate date,
         String urlSuffix,
         Map<String, String> headers,
@@ -133,13 +115,13 @@ public abstract class AbstractDownloader implements Downloader {
                 if (utils.downloadFile(url, f, headers, true, this.getName())) {
                     DownloadReceiver.metas.remove(fileUri);
 
-                    return new DownloadResult(f);
+                    return new Downloader.DownloadResult(f);
                 } else {
-                    return new DownloadResult();
+                    return Downloader.DownloadResult.DEFERRED_FILE;
                 }
             } else {
                 AndroidVersionUtils.Factory.getInstance().downloadFile(url, f, headers, true, this.getName());
-                return new DownloadResult(f);
+                return new Downloader.DownloadResult(f);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -148,7 +130,9 @@ public abstract class AbstractDownloader implements Downloader {
         return null;
     }
 
-    protected DownloadResult download(LocalDate date, String urlSuffix) {
+    protected Downloader.DownloadResult download(
+        LocalDate date, String urlSuffix
+    ) {
         return download(date, urlSuffix, EMPTY_MAP);
     }
 

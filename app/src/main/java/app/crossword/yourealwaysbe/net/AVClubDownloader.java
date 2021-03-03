@@ -3,7 +3,7 @@ package app.crossword.yourealwaysbe.net;
 import app.crossword.yourealwaysbe.io.IO;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -12,6 +12,9 @@ import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 /**
  * The Onion AV Club
@@ -36,7 +39,8 @@ public class AVClubDownloader extends AbstractDownloader {
         return NAME;
     }
 
-    public File download(LocalDate date) {
+    @Override
+    public Downloader.DownloadResult download(LocalDate date) {
         return this.download(date, this.createUrlSuffix(date));
     }
 
@@ -47,7 +51,11 @@ public class AVClubDownloader extends AbstractDownloader {
     }
 
     @Override
-    protected File download(LocalDate date, String urlSuffix) {
+    protected Downloader.DownloadResult download(
+        LocalDate date, String urlSuffix
+    ) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
         try {
             URL url = new URL(this.baseUrl + urlSuffix);
             System.out.println(url);
@@ -58,12 +66,14 @@ public class AVClubDownloader extends AbstractDownloader {
             connection.setRequestProperty("Referer", this.baseUrl);
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                File f = new File(downloadDirectory, this.createFileName(date));
-                FileOutputStream fos = new FileOutputStream(f);
+                FileHandle f = fileHandler.getFileHandle(
+                    downloadDirectory, this.createFileName(date)
+                );
+                OutputStream fos = fileHandler.getOutputStream(f);
                 IO.copyStream(connection.getInputStream(), fos);
                 fos.close();
 
-                return f;
+                return new Downloader.DownloadResult(f);
             } else {
                 return null;
             }
