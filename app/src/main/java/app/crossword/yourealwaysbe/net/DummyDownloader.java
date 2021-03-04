@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe.net;
 
-import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
@@ -30,7 +29,7 @@ public class DummyDownloader implements Downloader {
     }
 
     @Override
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return null;
     }
 

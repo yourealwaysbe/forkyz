@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe.net;
 
-import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +31,7 @@ public class LATSundayDownloader extends AbstractJPZDownloader {
         return NAME;
     }
 
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return download(date, this.createUrlSuffix(date), EMPTY_MAP);
     }
 }

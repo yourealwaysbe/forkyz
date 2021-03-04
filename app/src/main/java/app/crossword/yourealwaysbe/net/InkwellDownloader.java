@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe.net;
 
-import java.io.File;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -29,7 +28,7 @@ public class InkwellDownloader extends AbstractDownloader {
         return NAME;
     }
 
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return super.download(date, this.createUrlSuffix(date));
     }
 
