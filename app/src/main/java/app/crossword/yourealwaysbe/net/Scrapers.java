@@ -11,8 +11,9 @@ import androidx.core.app.NotificationCompat;
 
 import app.crossword.yourealwaysbe.PlayActivity;
 import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class Scrapers {
         if (prefs.getBoolean("scrapeKegler", false)) {
             scrapers.add(new KeglerScraper());
         }
-        
+
 //        if (prefs.getBoolean("scrapePeople", true)) {
 //            scrapers.add(new PeopleScraper());
 //        }
@@ -51,7 +52,7 @@ public class Scrapers {
         int i = 1;
         String contentTitle = "Downloading Scrape Puzzles";
 
-        NotificationCompat.Builder not 
+        NotificationCompat.Builder not
             = new NotificationCompat.Builder(
                     context, ForkyzApplication.PUZZLE_DOWNLOAD_CHANNEL_ID
                 )
@@ -70,11 +71,13 @@ public class Scrapers {
                     this.notificationManager.notify(0, not.build());
                 }
 
-                List<File> downloaded = scraper.scrape();
+                List<FileHandle> downloaded = scraper.scrape();
 
                 if (!this.supressMessages) {
-                    for (File f : downloaded) {
-                        postDownloadedNotification(i++, scraper.getSourceName(), f);
+                    for (FileHandle f : downloaded) {
+                        postDownloadedNotification(
+                            i++, scraper.getSourceName(), f
+                        );
                     }
                 }
             } catch (Exception e) {
@@ -91,10 +94,20 @@ public class Scrapers {
         this.supressMessages = b;
     }
 
-    private void postDownloadedNotification(int i, String name, File puzFile) {
+    private void postDownloadedNotification(
+        int i, String name, FileHandle puzFile
+    ) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
         String contentTitle = "Downloaded Puzzle From " + name;
 
-        Intent notificationIntent = new Intent(Intent.ACTION_EDIT, Uri.fromFile(puzFile), context, PlayActivity.class);
+        Intent notificationIntent = new Intent(
+            Intent.ACTION_EDIT,
+            fileHandler.getUri(puzFile),
+            context,
+            PlayActivity.class
+        );
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 
         Notification not = new NotificationCompat.Builder(
@@ -102,7 +115,7 @@ public class Scrapers {
             )
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setContentTitle(contentTitle)
-            .setContentText(puzFile.getName())
+            .setContentText(fileHandler.getName(puzFile))
             .setContentIntent(contentIntent)
             .setWhen(System.currentTimeMillis())
             .build();

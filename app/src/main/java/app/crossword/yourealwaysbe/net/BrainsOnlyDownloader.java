@@ -1,13 +1,13 @@
 package app.crossword.yourealwaysbe.net;
 
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.io.BrainsOnlyIO;
 import app.crossword.yourealwaysbe.io.KingFeaturesPlaintextIO;
 import app.crossword.yourealwaysbe.io.UclickXMLIO;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.DayOfWeek;
@@ -42,14 +42,18 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
         return this.fullName;
     }
 
-    public File download(LocalDate date) {
-        File downloadTo = new File(this.downloadDirectory, this.createFileName(date));
+    public Downloader.DownloadResult download(LocalDate date) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+        FileHandle downloadTo = fileHandler.getFileHandle(
+            this.downloadDirectory, this.createFileName(date)
+        );
 
-        if (downloadTo.exists()) {
+        if (fileHandler.exists(downloadTo)) {
             return null;
         }
 
-        File plainText = downloadToTempFile(this.getName(), date);
+        FileHandle plainText = downloadToTempFile(this.getName(), date);
 
         if (plainText == null) {
             return null;
@@ -57,25 +61,27 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
 
         try {
             LOG.log(Level.INFO, "Reading from "+plainText);
-            InputStream is = new FileInputStream(plainText);
-            DataOutputStream os = new DataOutputStream(new FileOutputStream(downloadTo));
+            InputStream is = fileHandler.getInputStream(plainText);
+            DataOutputStream os = new DataOutputStream(
+                fileHandler.getOutputStream(downloadTo)
+            );
             boolean retVal = BrainsOnlyIO.convertBrainsOnly(is, os, date);
             os.close();
             is.close();
-            plainText.delete();
+            fileHandler.delete(plainText);
             LOG.log(Level.INFO, "Saved to "+downloadTo);
             if (!retVal) {
                 LOG.log(Level.SEVERE, "Unable to convert KFS puzzle into Across Lite format.");
-                downloadTo.delete();
+                fileHandler.delete(downloadTo);
                 downloadTo = null;
             }
         } catch (Exception ioe) {
             LOG.log(Level.SEVERE, "Exception converting KFS puzzle into Across Lite format.", ioe);
-            downloadTo.delete();
+            fileHandler.delete(downloadTo);
             downloadTo = null;
         }
 
-        return downloadTo;
+        return new Downloader.DownloadResult(downloadTo);
     }
 
 }

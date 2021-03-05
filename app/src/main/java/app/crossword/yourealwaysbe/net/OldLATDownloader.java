@@ -1,6 +1,5 @@
 package app.crossword.yourealwaysbe.net;
 
-import java.io.File;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,7 +29,7 @@ public class OldLATDownloader extends AbstractDownloader {
         return OldLATDownloader.NAME;
     }
 
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return this.download(date, this.createUrlSuffix(date));
     }
 
@@ -41,7 +40,9 @@ public class OldLATDownloader extends AbstractDownloader {
     }
 
     @Override
-    protected File download(LocalDate date, String urlSuffix) {
+    protected Downloader.DownloadResult download(
+        LocalDate date, String urlSuffix
+    ) {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Referer", "http://www.cruciverb.com/puzzles.php?op=showarch&pub=lat");
         headers.put("User-Agent",

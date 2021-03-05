@@ -1,8 +1,6 @@
 package app.crossword.yourealwaysbe.net;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -19,10 +17,13 @@ import java.util.logging.Level;
 
 import android.net.Uri;
 
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.io.IndependentXMLIO;
 import app.crossword.yourealwaysbe.puz.Box;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 /**
  * Independent Daily Cryptic downloader
@@ -44,14 +45,16 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
         return NAME;
     }
 
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return download(date, this.createUrlSuffix(date), EMPTY_MAP);
     }
 
-    protected File download(LocalDate date,
-                            String urlSuffix,
-                            Map<String, String> headers,
-                            boolean canDefer) {
+    protected Downloader.DownloadResult download(
+        LocalDate date,
+        String urlSuffix,
+        Map<String, String> headers,
+        boolean canDefer
+    ) {
         URL url = null;
         try {
             url = new URL(this.baseUrl + urlSuffix);
@@ -60,11 +63,19 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
             return null;
         }
 
-        File f = new File(downloadDirectory, this.createFileName(date));
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
 
-        try (InputStream is = url.openStream();
-             DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))) {
+        FileHandle f = fileHandler.getFileHandle(
+            downloadDirectory, this.createFileName(date)
+        );
 
+        try (
+            InputStream is = url.openStream();
+            DataOutputStream dos = new DataOutputStream(
+                 fileHandler.getOutputStream(f)
+            )
+        ) {
             boolean retVal =
                 IndependentXMLIO.convertPuzzle(is, dos,
                                                "Copyright unknown.", date);
@@ -79,8 +90,10 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
                 meta.sourceUrl = url.toString();
                 meta.updatable = true;
 
-                utils.storeMetas(Uri.fromFile(f), meta);
+                utils.storeMetas(fileHandler.getUri(f), meta);
             }
+
+            return new Downloader.DownloadResult(f);
         } catch (IOException ioe) {
             LOG.log(Level.SEVERE, "Exception converting Independent XML puzzle into Across Lite format.", ioe);
         }
