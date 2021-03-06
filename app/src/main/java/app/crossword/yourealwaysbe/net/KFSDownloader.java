@@ -69,11 +69,12 @@ public class KFSDownloader extends AbstractDownloader {
 
         String copyright = "\u00a9 " + date.getYear() + " King Features Syndicate.";
 
-        try {
+        try (
             InputStream is = fileHandler.getInputStream(plainText);
             DataOutputStream os = new DataOutputStream(
                 fileHandler.getOutputStream(downloadTo)
             );
+        ) {
             boolean retVal = KingFeaturesPlaintextIO.convertKFPuzzle(
                 is, os,
                 fullName + ", " + df.format(date),

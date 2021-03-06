@@ -134,11 +134,14 @@ public class HttpDownloadActivity extends ForkyzActivity {
             FileHandle puzFile = fileHandler.getFileHandle(
                 crosswordsFolder, filename
             );
-            OutputStream fos = fileHandler.getOutputStream(
-                fileHandler.getFileHandle(crosswordsFolder, filename)
-            );
-            copyStream(is, fos);
-            fos.close();
+
+            try (
+                OutputStream fos = fileHandler.getOutputStream(
+                    fileHandler.getFileHandle(crosswordsFolder, filename)
+                )
+            ) {
+                copyStream(is, fos);
+            }
 
             Intent i = new Intent(
                 Intent.ACTION_EDIT,

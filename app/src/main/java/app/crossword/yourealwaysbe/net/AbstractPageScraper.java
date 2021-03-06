@@ -51,10 +51,8 @@ public class AbstractPageScraper {
         FileHandle output= fileHandler.getFileHandle(
             AbstractDownloader.DOWNLOAD_DIR, fileName
         );
-        try {
-            OutputStream fos = fileHandler.getOutputStream(output);
+        try (OutputStream fos = fileHandler.getOutputStream(output)) {
             IO.copyStream(u.openStream(), fos);
-            fos.close();
         } catch (Exception e) {
             fileHandler.delete(output);
             return null;

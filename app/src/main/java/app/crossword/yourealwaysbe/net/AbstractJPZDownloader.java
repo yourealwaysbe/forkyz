@@ -39,12 +39,12 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
         FileHandle puzFile = fileHandler.getFileHandle(
             downloadDirectory, this.createFileName(date)
         );
-        try {
+        try (
             InputStream is = fileHandler.getInputStream(jpzFile);
             DataOutputStream dos
                 = new DataOutputStream(fileHandler.getOutputStream(puzFile));
+        ) {
             JPZIO.convertJPZPuzzle(is, dos , date);
-            dos.close();
             fileHandler.delete(jpzFile);
             return new Downloader.DownloadResult(puzFile);
         } catch (FileNotFoundException e) {

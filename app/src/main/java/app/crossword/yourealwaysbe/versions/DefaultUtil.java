@@ -43,31 +43,18 @@ public abstract class DefaultUtil implements AndroidVersionUtils {
         for (Entry<String, String> e : headers.entrySet()){
             requestBuilder = requestBuilder.header(e.getKey(), e.getValue());
         }
-        OutputStream fos = null;
-        try {
-            Response response = httpclient.newCall(requestBuilder.build()).execute();
-
-            fos = fileHandler.getOutputStream(destination);
+        try (
+            OutputStream fos = fileHandler.getOutputStream(destination);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
+        ) {
+            Response response = httpclient.newCall(requestBuilder.build()).execute();
             IO.copyStream(response.body().byteStream(), baos);
             IO.copyStream(new ByteArrayInputStream(baos.toByteArray()), fos);
-            fos.close();
             return true;
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
-        } finally {
-            if(fos != null){
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-
     }
 
     public abstract void onActionBarWithText(MenuItem a);

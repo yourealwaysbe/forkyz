@@ -75,11 +75,12 @@ public class UclickDownloader extends AbstractDownloader {
             return null;
         }
 
-        try {
+        try (
             InputStream is = fileHandler.getInputStream(plainText);
             DataOutputStream os = new DataOutputStream(
                 fileHandler.getOutputStream(downloadTo)
             );
+        ) {
             boolean retVal = UclickXMLIO.convertUclickPuzzle(is, os,
                     "\u00a9 " + date.getYear() + " " + copyright, date);
             os.close();

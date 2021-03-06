@@ -59,15 +59,18 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
             return null;
         }
 
-        try {
-            LOG.log(Level.INFO, "Reading from "+plainText);
+        try (
             InputStream is = fileHandler.getInputStream(plainText);
             DataOutputStream os = new DataOutputStream(
                 fileHandler.getOutputStream(downloadTo)
             );
+        ) {
             boolean retVal = BrainsOnlyIO.convertBrainsOnly(is, os, date);
+
+            // not sure if i should really leave these closes in...
             os.close();
             is.close();
+
             fileHandler.delete(plainText);
             LOG.log(Level.INFO, "Saved to "+downloadTo);
             if (!retVal) {

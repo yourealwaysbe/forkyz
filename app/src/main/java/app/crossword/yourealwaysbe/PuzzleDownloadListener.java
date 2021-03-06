@@ -94,10 +94,9 @@ public class PuzzleDownloadListener implements DownloadListener {
         FileHandle archiveOutputFile
             = fileHandler.getFileHandle(archiveFolder, fileName);
 
-        OutputStream fout = null;
-        try {
-            InputStream in = OpenHttpConnection(new URL(url), cookies);
-
+        try (
+            InputStream in = OpenHttpConnection(new URL(url), cookies)
+        ) {
             if (fileHandler.exists(outputFile)
                     || fileHandler.exists(archiveOutputFile)) {
                 sendMessage("Puzzle " + fileName + " already exists.");
@@ -105,17 +104,14 @@ public class PuzzleDownloadListener implements DownloadListener {
                 return;
             }
 
-            fout = fileHandler.getOutputStream(outputFile);
-            byte[] buffer = new byte[1024];
-            int len = 0;
+            try (OutputStream fout = fileHandler.getOutputStream(outputFile);) {
+                byte[] buffer = new byte[1024];
+                int len = 0;
 
-            while ((len = in.read(buffer)) != -1) {
-                fout.write(buffer, 0, len);
+                while ((len = in.read(buffer)) != -1) {
+                    fout.write(buffer, 0, len);
+                }
             }
-
-            fout.flush();
-            fout.close();
-            in.close();
 
             PuzzleMeta meta = new PuzzleMeta();
             meta.date = LocalDate.now();
@@ -124,20 +120,14 @@ public class PuzzleDownloadListener implements DownloadListener {
                 = Downloaders.processDownloadedPuzzle(outputFile, meta);
 
             if (processed) {
-                sendMessage("Puzzle " + fileName + " downloaded successfully.");
+                sendMessage(
+                    "Puzzle " + fileName + " downloaded successfully."
+                );
             } else {
                 sendMessage("Error parsing puzzle " + fileName);
             }
         } catch (Exception ex) {
             sendMessage("Error downloading puzzle " + fileName);
-        } finally {
-            if(fout != null){
-                try {
-                    fout.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

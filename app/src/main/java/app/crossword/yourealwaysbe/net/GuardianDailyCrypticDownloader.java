@@ -88,12 +88,15 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             FileHandle f = fileHandler.getFileHandle(
                 downloadDirectory, this.createFileName(date)
             );
-            DataOutputStream dos = new DataOutputStream(
-                fileHandler.getOutputStream(f)
-            );
-            puz.setVersion(IO.VERSION_STRING);
-            IO.saveNative(puz, dos);
-            dos.close();
+
+            try (
+                DataOutputStream dos = new DataOutputStream(
+                    fileHandler.getOutputStream(f)
+                )
+            ) {
+                puz.setVersion(IO.VERSION_STRING);
+                IO.saveNative(puz, dos);
+            }
 
             PuzzleMeta meta = new PuzzleMeta();
             meta.date = puz.getDate();
