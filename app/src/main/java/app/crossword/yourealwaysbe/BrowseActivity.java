@@ -76,6 +76,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private SeparatedRecyclerViewAdapter<FileViewHolder> currentAdapter = null;
     private DirHandle archiveFolder = getFileHandler().getArchiveDirectory();
     private DirHandle crosswordsFolder = getFileHandler().getCrosswordsDirectory();
+    private PuzMetaFile contextFile;
     private PuzMetaFile lastOpenedPuzMeta = null;
     private Handler handler = new Handler(Looper.getMainLooper());
     private RecyclerView puzzleList;
@@ -148,6 +149,38 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
     };
     private int primaryTextColor;
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        System.out.println("FILES on context item");
+
+        FileHandler fileHandler = getFileHandler();
+
+        if (item.getTitle().equals("Delete")) {
+            fileHandler.delete(contextFile);
+            render();
+            return true;
+        } else if (item.getTitle().equals("Archive")) {
+            fileHandler.moveTo(contextFile, archiveFolder);
+            render();
+            return true;
+        } else if (item.getTitle().equals("Un-archive")) {
+            fileHandler.moveTo(contextFile, crosswordsFolder);
+            render();
+            return true;
+        } else if ("Mark as Updated".equals(item.getTitle())) {
+            try {
+                Puzzle p = fileHandler.load(contextFile);
+                p.setUpdatable(false);
+                fileHandler.save(p, contextFile);
+                render();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return super.onContextItemSelected(item);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

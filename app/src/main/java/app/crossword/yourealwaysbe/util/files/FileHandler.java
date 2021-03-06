@@ -220,6 +220,10 @@ public class FileHandler {
                     .toLocalDate();
     }
 
+    public Puzzle load(PuzMetaFile puzMeta) throws IOException {
+        return load(puzMeta.getFileHandle());
+    }
+
     public Puzzle load(FileHandle fileHandle) throws IOException {
         File baseFile = fileHandle.getFile();
         File metaFile = getMetaFile(baseFile);
@@ -236,8 +240,11 @@ public class FileHandler {
         return puz;
     }
 
-    public void save(Puzzle puz, FileHandle fileHandle)
-            throws IOException {
+    public void save(Puzzle puz, PuzMetaFile puzMeta) throws IOException {
+        save(puz, puzMeta.getFileHandle());
+    }
+
+    public void save(Puzzle puz, FileHandle fileHandle) throws IOException {
         File baseFile = fileHandle.getFile();
         long incept = System.currentTimeMillis();
         File metaFile = getMetaFile(baseFile);
