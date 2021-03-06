@@ -187,6 +187,10 @@ public class FileHandler {
             metaFile.renameTo(new File(directory, metaFile.getName()));
     }
 
+    public void renameTo(FileHandle src, FileHandle dest) {
+        src.getFile().renameTo(dest.getFile());
+    }
+
     public OutputStream getOutputStream(FileHandle fileHandle)
             throws IOException {
         return new FileOutputStream(fileHandle.getFile());

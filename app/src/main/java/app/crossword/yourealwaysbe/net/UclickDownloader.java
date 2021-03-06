@@ -1,11 +1,9 @@
 package app.crossword.yourealwaysbe.net;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -13,10 +11,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.logging.Level;
 
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.io.UclickXMLIO;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.versions.DefaultUtil;
-
 
 /**
  * Uclick XML Puzzles
@@ -57,41 +57,47 @@ public class UclickDownloader extends AbstractDownloader {
         return fullName;
     }
 
-    public File download(LocalDate date) {
-        File downloadTo = new File(this.downloadDirectory, this.createFileName(date));
+    public Downloader.DownloadResult download(LocalDate date) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
 
-        if (downloadTo.exists()) {
+        FileHandle downloadTo = fileHandler.getFileHandle(
+            this.downloadDirectory, this.createFileName(date)
+        );
+
+        if (fileHandler.exists(downloadTo)) {
             return null;
         }
 
-        File plainText = downloadToTempFile(date);
+        FileHandle plainText = downloadToTempFile(date);
 
         if (plainText == null) {
             return null;
         }
 
         try {
-        	LOG.log(Level.INFO, "TMP FILE "+plainText.getAbsolutePath());
-            InputStream is = new FileInputStream(plainText);
-            DataOutputStream os = new DataOutputStream(new FileOutputStream(downloadTo));   
+            InputStream is = fileHandler.getInputStream(plainText);
+            DataOutputStream os = new DataOutputStream(
+                fileHandler.getOutputStream(downloadTo)
+            );
             boolean retVal = UclickXMLIO.convertUclickPuzzle(is, os,
                     "\u00a9 " + date.getYear() + " " + copyright, date);
             os.close();
             is.close();
-            plainText.delete();
+            fileHandler.delete(plainText);
 
             if (!retVal) {
                 LOG.log(Level.SEVERE, "Unable to convert uclick XML puzzle into Across Lite format.");
-                downloadTo.delete();
+                fileHandler.delete(downloadTo);
                 downloadTo = null;
             }
         } catch (IOException ioe) {
             LOG.log(Level.SEVERE, "Exception converting uclick XML puzzle into Across Lite format.", ioe);
-            downloadTo.delete();
+            fileHandler.delete(downloadTo);
             downloadTo = null;
         }
 
-        return downloadTo;
+        return new Downloader.DownloadResult(downloadTo);
     }
 
     @Override
@@ -100,8 +106,13 @@ public class UclickDownloader extends AbstractDownloader {
         nf.format(date.getDayOfMonth()) + "-data.xml";
     }
 
-    private File downloadToTempFile(LocalDate date) {
-        File f = new File(downloadDirectory, this.createFileName(date));
+    private FileHandle downloadToTempFile(LocalDate date) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
+        FileHandle f = fileHandler.getFileHandle(
+            downloadDirectory, this.createFileName(date)
+        );
 
         try {
             URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
@@ -119,9 +130,12 @@ public class UclickDownloader extends AbstractDownloader {
         }
 
         try {
-        	
-            File tmpFile = new File(this.tempFolder, "uclick-temp"+System.currentTimeMillis()+".xml");
-            f.renameTo(tmpFile);
+
+            FileHandle tmpFile = fileHandler.getFileHandle(
+                this.tempFolder,
+                "uclick-temp"+System.currentTimeMillis()+".xml"
+            );
+            fileHandler.renameTo(f, tmpFile);
 
             return tmpFile;
         } catch (Exception e) {

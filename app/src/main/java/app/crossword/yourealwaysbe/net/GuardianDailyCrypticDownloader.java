@@ -1,17 +1,16 @@
 package app.crossword.yourealwaysbe.net;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.Month;
 import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Month;
 import java.time.Period;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import android.net.Uri;
@@ -30,6 +29,9 @@ import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Box;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandler;
+import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 
 /**
  * Guardian Daily Cryptic downloader
@@ -57,26 +59,38 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
         return NAME;
     }
 
-    public File download(LocalDate date) {
+    public Downloader.DownloadResult download(LocalDate date) {
         return download(date, this.createUrlSuffix(date), EMPTY_MAP);
     }
 
-    protected File download(LocalDate date,
-                            String urlSuffix,
-                            Map<String, String> headers,
-                            boolean canDefer) {
+    protected Downloader.DownloadResult download(
+        LocalDate date,
+        String urlSuffix,
+        Map<String, String> headers,
+        boolean canDefer
+    ) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
         try {
             URL url = new URL(this.baseUrl + urlSuffix);
             JSONObject cw = getCrosswordJSON(url);
 
             if (cw == null) {
-                return canDefer ? Downloader.DEFERRED_FILE : null;
+                return (canDefer
+                    ?  Downloader.DownloadResult.DEFERRED_FILE
+                    : null
+                );
             }
 
             Puzzle puz = readPuzzleFromJSON(cw, date);
 
-            File f = new File(downloadDirectory, this.createFileName(date));
-            DataOutputStream dos = new DataOutputStream(new FileOutputStream(f));
+            FileHandle f = fileHandler.getFileHandle(
+                downloadDirectory, this.createFileName(date)
+            );
+            DataOutputStream dos = new DataOutputStream(
+                fileHandler.getOutputStream(f)
+            );
             puz.setVersion(IO.VERSION_STRING);
             IO.saveNative(puz, dos);
             dos.close();
@@ -87,7 +101,7 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             meta.sourceUrl = url.toString();
             meta.updatable = true;
 
-            utils.storeMetas(Uri.fromFile(f), meta);
+            utils.storeMetas(fileHandler.getUri(f), meta);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {

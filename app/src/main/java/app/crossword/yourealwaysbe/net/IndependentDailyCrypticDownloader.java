@@ -92,8 +92,6 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
 
                 utils.storeMetas(fileHandler.getUri(f), meta);
             }
-
-            return new Downloader.DownloadResult(f);
         } catch (IOException ioe) {
             LOG.log(Level.SEVERE, "Exception converting Independent XML puzzle into Across Lite format.", ioe);
         }
