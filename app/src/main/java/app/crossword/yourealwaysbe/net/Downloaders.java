@@ -16,6 +16,7 @@ import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
+import app.crossword.yourealwaysbe.util.files.DirHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 
@@ -136,6 +137,9 @@ public class Downloaders {
     }
 
     private void download(Map<Downloader, LocalDate> puzzlesToDownload) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
         String contentTitle = "Downloading Puzzles";
 
         NotificationCompat.Builder not =
@@ -145,24 +149,18 @@ public class Downloaders {
                         .setWhen(System.currentTimeMillis());
 
         boolean somethingDownloaded = false;
-        File crosswords = new File(Environment.getExternalStorageDirectory(), "crosswords/");
-        File archive = new File(Environment.getExternalStorageDirectory(), "crosswords/archive/");
-        crosswords.mkdirs();
+        DirHandle crosswords = fileHandler.getCrosswordsDirectory();
+        DirHandle archive = fileHandler.getArchiveDirectory();
 
-        if (crosswords.listFiles() != null) {
-            for (File isDel : crosswords.listFiles()) {
-                if (isDel.getName()
-                        .endsWith(".tmp")) {
-                    isDel.delete();
-                }
+        for (FileHandle isDel : fileHandler.listFiles(crosswords)) {
+            if (fileHandler.getName(isDel).endsWith(".tmp")) {
+                fileHandler.delete(isDel);
             }
         }
 
-        HashSet<File> newlyDownloaded = new HashSet<File>();
-
         int nextNotificationId = 1;
         for (Map.Entry<Downloader, LocalDate> puzzle : puzzlesToDownload.entrySet()) {
-            File downloaded = downloadPuzzle(puzzle.getKey(),
+            FileHandle downloaded = downloadPuzzle(puzzle.getKey(),
                     puzzle.getValue(),
                     not,
                     nextNotificationId++,
@@ -170,49 +168,8 @@ public class Downloaders {
                     archive);
             if (downloaded != null) {
                 somethingDownloaded = true;
-                newlyDownloaded.add(downloaded);
             }
 
-        }
-
-        { // DO UPDATES
-
-            ArrayList<File> checkUpdate = new ArrayList<File>();
-
-            try {
-                for (File file : crosswords.listFiles()) {
-                    if (file.getName()
-                            .endsWith(".forkyz")) {
-                        File puz = new File(file.getAbsolutePath().substring(0,
-                                file.getAbsolutePath().lastIndexOf('.') + 1) + "puz");
-                        System.out.println(puz.getAbsolutePath());
-
-                        if (!newlyDownloaded.contains(puz)) {
-                            checkUpdate.add(puz);
-                        }
-                    }
-                }
-
-                archive.mkdirs();
-
-                for (File file : archive.listFiles()) {
-                    if (file.getName()
-                            .endsWith(".forkyz")) {
-                        checkUpdate.add(new File(file.getAbsolutePath().substring(0,
-                                file.getAbsolutePath().lastIndexOf('.') + 1) + "puz"));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            for (File file : checkUpdate) {
-                try {
-                    IO.meta(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
 
         if (this.notificationManager != null) {
@@ -224,12 +181,17 @@ public class Downloaders {
         }
     }
 
-    private File downloadPuzzle(Downloader d,
-                                LocalDate date,
-                                NotificationCompat.Builder not,
-                                int notificationId,
-                                File crosswords,
-                                File archive) {
+    private FileHandle downloadPuzzle(
+        Downloader d,
+        LocalDate date,
+        NotificationCompat.Builder not,
+        int notificationId,
+        DirHandle crosswords,
+        DirHandle archive
+    ) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
         LOG.info("Downloading " + d.toString());
         d.setContext(context);
 
@@ -240,14 +202,17 @@ public class Downloaders {
 
             not.setContentText(contentText).setContentIntent(contentIntent);
 
-            File downloaded = new File(crosswords, d.createFileName(date));
-            File archived = new File(archive, d.createFileName(date));
+            FileHandle downloaded = fileHandler.getFileHandle(
+                crosswords, d.createFileName(date)
+            );
+            FileHandle archived = fileHandler.getFileHandle(
+                archive, d.createFileName(date)
+            );
 
-            System.out.println(downloaded.getAbsolutePath() + " " + downloaded.exists() + " OR " +
-                    archived.getAbsolutePath() + " " + archived.exists());
+            boolean exists = fileHandler.exists(downloaded)
+                || fileHandler.exists(archived);
 
-            if (!d.alwaysRun() && (downloaded.exists() || archived.exists())) {
-                System.out.println("==Skipping " + d.toString());
+            if (!d.alwaysRun() && exists) {
                 return null;
             }
 
@@ -255,11 +220,13 @@ public class Downloaders {
                 this.notificationManager.notify(0, not.build());
             }
 
-            downloaded = d.download(date);
+            Downloader.DownloadResult downloadResult = d.download(date);
 
-            if (downloaded == Downloader.DEFERRED_FILE) {
+            if (downloadResult.getIsDeferred()) {
                 return null;
             }
+
+            downloaded = downloadResult.getFileHandle();
 
             if (downloaded != null) {
                 boolean updatable = false;
@@ -287,12 +254,9 @@ public class Downloaders {
     public static boolean processDownloadedPuzzle(
         FileHandle downloaded, PuzzleMeta meta
     ) {
+        final FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
         try {
-            System.out.println("==PROCESSING " + downloaded + " hasmeta: "
-                    + (meta != null));
-
-            final FileHandler fileHandler
-                = ForkyzApplication.getInstance().getFileHandler();
             final Puzzle puz = fileHandler.load(downloaded);
             if(puz == null){
                 return false;
@@ -302,12 +266,12 @@ public class Downloaders {
             puz.setSourceUrl(meta.sourceUrl);
             puz.setUpdatable(meta.updatable);
 
-            IO.save(puz, downloaded);
+            fileHandler.save(puz, downloaded);
 
             return true;
         } catch (Exception ioe) {
             LOG.log(Level.WARNING, "Exception reading " + downloaded, ioe);
-            downloaded.delete();
+            fileHandler.delete(downloaded);
 
             return false;
         }
@@ -338,18 +302,23 @@ public class Downloaders {
         }
     }
 
-    private void postDownloadedNotification(int i, String name, File puzFile) {
+    private void postDownloadedNotification(
+        int i, String name, FileHandle puzFile
+    ) {
+        FileHandler fileHandler
+            = ForkyzApplication.getInstance().getFileHandler();
+
         String contentTitle = "Downloaded " + name;
 
         Intent notificationIntent = new Intent(Intent.ACTION_EDIT,
-                Uri.fromFile(puzFile), context, PlayActivity.class);
+                fileHandler.getUri(puzFile), context, PlayActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
                 notificationIntent, 0);
 
         Notification not = new NotificationCompat.Builder(context, ForkyzApplication.PUZZLE_DOWNLOAD_CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
                 .setContentTitle(contentTitle)
-                .setContentText(puzFile.getName())
+                .setContentText(fileHandler.getName(puzFile))
                 .setContentIntent(contentIntent)
                 .setWhen(System.currentTimeMillis())
                 .build();

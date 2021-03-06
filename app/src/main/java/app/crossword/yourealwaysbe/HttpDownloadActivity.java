@@ -23,6 +23,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import app.crossword.yourealwaysbe.util.files.DirHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
 
@@ -130,13 +131,21 @@ public class HttpDownloadActivity extends ForkyzActivity {
             }
 
             InputStream is = response.body().byteStream();
-            File puzFile = new File(crosswordsFolder, filename);
-            OutputStream fos
-                = crosswordsFolder.getFileHandle(filename).getOutputStream();
+            FileHandle puzFile = fileHandler.getFileHandle(
+                crosswordsFolder, filename
+            );
+            OutputStream fos = fileHandler.getOutputStream(
+                fileHandler.getFileHandle(crosswordsFolder, filename)
+            );
             copyStream(is, fos);
             fos.close();
 
-            Intent i = new Intent(Intent.ACTION_EDIT, Uri.fromFile(puzFile), this, PlayActivity.class);
+            Intent i = new Intent(
+                Intent.ACTION_EDIT,
+                fileHandler.getUri(puzFile),
+                this,
+                PlayActivity.class
+            );
             this.startActivity(i);
         } catch (Exception e) {
             e.printStackTrace();

@@ -19,7 +19,6 @@ import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -39,9 +38,6 @@ public class ForkyzApplication extends Application {
     private Playboard board;
     private FileHandle baseFile;
     private PlayboardRenderer renderer;
-    public static File DEBUG_DIR;
-    public static File CROSSWORDS = new File(
-            Environment.getExternalStorageDirectory(), "crosswords");
     private SharedPreferences settings;
     private AtomicReference<PersistentCookieJar> cookieJar = new AtomicReference<>(null);
 
@@ -80,7 +76,7 @@ public class ForkyzApplication extends Application {
         if (puz == null)
             throw new IOException("No puzzle associated to the board to save.");
 
-        IO.save(puz, baseFile);
+        getFileHandler().save(puz, baseFile);
     }
 
     public void setRenderer(PlayboardRenderer renderer){
@@ -99,75 +95,6 @@ public class ForkyzApplication extends Application {
         super.onCreate();
 
         AndroidVersionUtils.Factory.getInstance().createNotificationChannel(this);
-
-        if (Environment.MEDIA_MOUNTED.equals(Environment
-                .getExternalStorageState())) {
-            IO.TEMP_FOLDER = new File(CROSSWORDS, "temp");
-            if(!IO.TEMP_FOLDER.mkdirs()){
-                return;
-            }
-            DEBUG_DIR = new File(CROSSWORDS, "debug");
-            if(!DEBUG_DIR.mkdirs()){
-                return;
-            }
-            File info = new File(DEBUG_DIR, "device");
-            PrintWriter writer = null;
-            try {
-                writer = new PrintWriter(new FileWriter(info));
-                writer.println("VERSION INT: "
-                        + android.os.Build.VERSION.SDK_INT);
-                writer.println("VERSION RELEASE: "
-                        + android.os.Build.VERSION.RELEASE);
-                writer.println("MODEL: " + android.os.Build.DEVICE);
-                writer.println("DISPLAY: " + android.os.Build.DISPLAY);
-                writer.println("MANUFACTURER: " + android.os.Build.MANUFACTURER);
-                writer.close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                if(writer != null){
-                    writer.close();
-                }
-            }
-        }
-    }
-
-
-    public static void zipDir(String dir2zip, ZipOutputStream zos) {
-        FileInputStream fis = null;
-        try {
-            File zipDir = new File(dir2zip);
-            String[] dirList = zipDir.list();
-            byte[] readBuffer = new byte[2156];
-            int bytesIn = 0;
-            for (int i = 0; i < dirList.length; i++) {
-                File f = new File(zipDir, dirList[i]);
-                if (f.isDirectory()) {
-                    String filePath = f.getPath();
-                    zipDir(filePath, zos);
-                    continue;
-                }
-                try {
-                    fis = new FileInputStream(f);
-
-                    ZipEntry anEntry = new ZipEntry(f.getPath());
-                    zos.putNextEntry(anEntry);
-                    while ((bytesIn = fis.read(readBuffer)) != -1) {
-                        zos.write(readBuffer, 0, bytesIn);
-                    }
-                } finally {
-                    if(fis != null){
-                        try {
-                            fis.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static boolean isLandscape(DisplayMetrics metrics){

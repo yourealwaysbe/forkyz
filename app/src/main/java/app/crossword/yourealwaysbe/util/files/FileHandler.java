@@ -9,10 +9,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.Iterable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -99,6 +101,25 @@ public class FileHandler {
         return dir.getFile().list().length;
     }
 
+    public Iterable<FileHandle> listFiles(final DirHandle dir) {
+        return new Iterable<FileHandle>() {
+            public Iterator<FileHandle> iterator() {
+                return new Iterator<FileHandle>() {
+                    private int pos = 0;
+                    private File[] files = dir.getFile().listFiles();
+
+                    public boolean hasNext() {
+                        return files == null ? false : pos < files.length - 1;
+                    }
+
+                    public FileHandle next() {
+                        return new FileHandle(files[pos++]);
+                    }
+                };
+            }
+        };
+    }
+
     public Uri getUri(FileHandle f) {
         return Uri.fromFile(f.getFile());
     }
@@ -128,11 +149,12 @@ public class FileHandler {
                 PuzzleMeta m = null;
 
                 try {
-                    m = IO.readMeta(
-                        new DataInputStream(
-                            new FileInputStream(f)
-                        )
-                    );
+                    File mf = getMetaFile(f);
+                    if (mf.exists()) {
+                        m = IO.readMeta(new DataInputStream(
+                            new FileInputStream(mf)
+                        ));
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
