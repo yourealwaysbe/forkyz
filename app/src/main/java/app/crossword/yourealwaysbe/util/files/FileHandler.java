@@ -142,9 +142,12 @@ public class FileHandler {
                 try {
                     File mf = getMetaFile(f);
                     if (mf.exists()) {
-                        m = IO.readMeta(new DataInputStream(
-                            new FileInputStream(mf)
-                        ));
+                        try (
+                            DataInputStream is
+                                = new DataInputStream(new FileInputStream(mf))
+                        ) {
+                            m = IO.readMeta(is);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -166,13 +169,14 @@ public class FileHandler {
     }
 
     public void reloadMeta(PuzMetaFile fileHandle) throws IOException {
-        fileHandle.setMeta(
-            IO.readMeta(
-                new DataInputStream(
+        try (
+            DataInputStream is
+                = new DataInputStream(
                     new FileInputStream(getMetaFile(fileHandle))
                 )
-            )
-        );
+        ) {
+            fileHandle.setMeta(IO.readMeta(is));
+        };
     }
 
     public void delete(FileHandle fileHandle){
@@ -227,17 +231,21 @@ public class FileHandler {
     public Puzzle load(FileHandle fileHandle) throws IOException {
         File baseFile = fileHandle.getFile();
         File metaFile = getMetaFile(baseFile);
-        FileInputStream fis = new FileInputStream(baseFile);
-        Puzzle puz = IO.loadNative(new DataInputStream(fis));
-        fis.close();
-
-        if (metaFile.exists()) {
-            fis = new FileInputStream(metaFile);
-            IO.readCustom(puz, new DataInputStream(fis));
-            fis.close();
+        try (
+            DataInputStream fis
+                = new DataInputStream(new FileInputStream(baseFile))
+        ) {
+            Puzzle puz = IO.loadNative(fis);
+            if (metaFile.exists()) {
+                try (
+                    DataInputStream mis
+                        = new DataInputStream(new FileInputStream(metaFile))
+                ) {
+                    IO.readCustom(puz, mis);
+                }
+            }
+            return puz;
         }
-
-        return puz;
     }
 
     public void save(Puzzle puz, PuzMetaFile puzMeta) throws IOException {
@@ -253,15 +261,17 @@ public class FileHandler {
         File puztemp = new File(tempFolder, baseFile.getName());
         File metatemp = new File(tempFolder, metaFile.getName());
 
-        FileOutputStream puzzle = new FileOutputStream(puztemp);
-        FileOutputStream meta = new FileOutputStream(metatemp);
+        try (
+            DataOutputStream puzzle
+                = new DataOutputStream(new FileOutputStream(puztemp));
+            DataOutputStream meta
+                = new DataOutputStream(new FileOutputStream(metatemp));
+        ) {
+            IO.save(puz, puzzle, meta);
+        }
 
-        IO.save(puz, new DataOutputStream(puzzle), new DataOutputStream(meta));
-
-        boolean renameBase = puztemp.renameTo(baseFile);
-        boolean renameMeta = metatemp.renameTo(metaFile);
-        System.out.println("Save complete in "
-                + (System.currentTimeMillis() - incept) + renameBase + renameMeta);
+        puztemp.renameTo(baseFile);
+        metatemp.renameTo(metaFile);
     }
 
     private File getMetaFile(PuzMetaFile pm) {
