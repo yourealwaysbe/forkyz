@@ -35,15 +35,6 @@ public class FileHandler {
     private static final Logger LOGGER
         = Logger.getLogger(FileHandler.class.getCanonicalName());
 
-    private static File TEMP_FOLDER;
-    static {
-        try {
-            TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir", "tmp"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public FileHandler() { }
 
     public DirHandle getCrosswordsDirectory() {
@@ -178,7 +169,7 @@ public class FileHandler {
         fileHandle.setMeta(
             IO.readMeta(
                 new DataInputStream(
-                    getInputStream(fileHandle.getFileHandle())
+                    new FileInputStream(getMetaFile(fileHandle))
                 )
             )
         );
@@ -251,18 +242,19 @@ public class FileHandler {
         long incept = System.currentTimeMillis();
         File metaFile = getMetaFile(baseFile);
 
-        File puztemp = new File(TEMP_FOLDER, baseFile.getName());
-        File metatemp = new File(TEMP_FOLDER, metaFile.getName());
+        File tempFolder = getSaveTempDirectory().getFile();
+        File puztemp = new File(tempFolder, baseFile.getName());
+        File metatemp = new File(tempFolder, metaFile.getName());
 
         FileOutputStream puzzle = new FileOutputStream(puztemp);
         FileOutputStream meta = new FileOutputStream(metatemp);
 
         IO.save(puz, new DataOutputStream(puzzle), new DataOutputStream(meta));
 
-        puztemp.renameTo(baseFile);
-        metatemp.renameTo(metaFile);
+        boolean renameBase = puztemp.renameTo(baseFile);
+        boolean renameMeta = metatemp.renameTo(metaFile);
         System.out.println("Save complete in "
-                + (System.currentTimeMillis() - incept));
+                + (System.currentTimeMillis() - incept) + renameBase + renameMeta);
     }
 
     private File getMetaFile(PuzMetaFile pm) {
@@ -275,5 +267,9 @@ public class FileHandler {
             puzFile.getName().substring(0, puzFile.getName().lastIndexOf("."))
                 + ".forkyz"
         );
+    }
+
+    private DirHandle getSaveTempDirectory() {
+        return getTempDirectory(getCrosswordsDirectory());
     }
 }

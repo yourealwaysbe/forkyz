@@ -653,7 +653,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
     @Override
     public void onItemClick(final View v, int position) {
-        if (!(v.getTag() instanceof FileHandle)) {
+        if (!(v.getTag() instanceof PuzMetaFile)) {
             return;
         }
         if (!selected.isEmpty()) {
