@@ -76,7 +76,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private SeparatedRecyclerViewAdapter<FileViewHolder> currentAdapter = null;
     private DirHandle archiveFolder = getFileHandler().getArchiveDirectory();
     private DirHandle crosswordsFolder = getFileHandler().getCrosswordsDirectory();
-    private PuzMetaFile contextFile;
     private PuzMetaFile lastOpenedPuzMeta = null;
     private Handler handler = new Handler(Looper.getMainLooper());
     private RecyclerView puzzleList;
@@ -90,7 +89,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private FloatingActionButton download;
     private int highlightColor;
     private int normalColor;
-    private HashSet<FileHandle> selected = new HashSet<>();
+    private HashSet<PuzMetaFile> selected = new HashSet<>();
     private ActionMode actionMode;
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override
@@ -119,20 +118,20 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
             FileHandler fileHandler = getFileHandler();
 
             if(menuItem.getTitle().equals("Delete")){
-                for(FileHandle handle : selected){
-                    fileHandler.delete(handle);
+                for(PuzMetaFile puzMeta : selected){
+                    fileHandler.delete(puzMeta);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Archive")){
-                for(FileHandle handle : selected){
-                    fileHandler.moveTo(handle, archiveFolder);
+                for(PuzMetaFile puzMeta : selected){
+                    fileHandler.moveTo(puzMeta, archiveFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Un-archive")){
-                for(FileHandle handle : selected){
-                    fileHandler.moveTo(handle, crosswordsFolder);
+                for(PuzMetaFile puzMeta : selected){
+                    fileHandler.moveTo(puzMeta, crosswordsFolder);
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
@@ -149,38 +148,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
     };
     private int primaryTextColor;
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        System.out.println("FILES on context item");
-
-        FileHandler fileHandler = getFileHandler();
-
-        if (item.getTitle().equals("Delete")) {
-            fileHandler.delete(contextFile);
-            render();
-            return true;
-        } else if (item.getTitle().equals("Archive")) {
-            fileHandler.moveTo(contextFile, archiveFolder);
-            render();
-            return true;
-        } else if (item.getTitle().equals("Un-archive")) {
-            fileHandler.moveTo(contextFile, crosswordsFolder);
-            render();
-            return true;
-        } else if ("Mark as Updated".equals(item.getTitle())) {
-            try {
-                Puzzle p = fileHandler.load(contextFile);
-                p.setUpdatable(false);
-                fileHandler.save(p, contextFile);
-                render();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return super.onContextItemSelected(item);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -279,10 +246,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         final FileHandler fileHandler = getFileHandler();
 
         this.setTitle("Puzzles");
-        //this.utils.hideTitleOnPortrait(this);
         setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
         this.setContentView(R.layout.browse);
-        this.showMenuAlways();
         this.puzzleList = (RecyclerView) this.findViewById(R.id.puzzleList);
         this.puzzleList.setLayoutManager(new LinearLayoutManager(this));
         this.puzzleList.addOnItemTouchListener(new RecyclerItemClickListener(this, this.puzzleList, this));
@@ -714,7 +679,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
     @Override
     public void onItemLongClick(View v, int position) {
-        if (!(v.getTag() instanceof FileHandle)) {
+        if (!(v.getTag() instanceof PuzMetaFile)) {
             return;
         }
         if (actionMode == null) {
@@ -725,10 +690,10 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
     private void updateSelection(View v) {
         Object oTag = v.getTag();
-        if(oTag == null || !(oTag instanceof FileHandle)){
+        if(oTag == null || !(oTag instanceof PuzMetaFile)){
             return;
         }
-        FileHandle tag = (FileHandle) oTag;
+        PuzMetaFile tag = (PuzMetaFile) oTag;
         if (selected.contains(tag)) {
             setListItemColor(v, false);
             selected.remove(tag);

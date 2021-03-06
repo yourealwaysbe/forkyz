@@ -222,7 +222,7 @@ public class Downloaders {
 
             Downloader.DownloadResult downloadResult = d.download(date);
 
-            if (downloadResult.getIsDeferred()) {
+            if (downloadResult == null || downloadResult.getIsDeferred()) {
                 return null;
             }
 
