@@ -25,7 +25,8 @@ import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 
 /**
- * Abstraction layer for file operations
+ * Implementation of original Shortyz file access directly working with
+ * external SD card directory.
  */
 @SuppressWarnings("deprecation")
 public class LegacyFileHandler extends FileHandler {
