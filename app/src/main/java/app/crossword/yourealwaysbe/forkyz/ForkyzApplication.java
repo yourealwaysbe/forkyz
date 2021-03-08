@@ -13,7 +13,7 @@ import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
-import app.crossword.yourealwaysbe.util.files.LegacyFileHandler;
+import app.crossword.yourealwaysbe.util.files.FileHandlerLegacy;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -42,7 +42,7 @@ public class ForkyzApplication extends Application {
     private SharedPreferences settings;
     private AtomicReference<PersistentCookieJar> cookieJar = new AtomicReference<>(null);
 
-    private FileHandler fileHandler = new LegacyFileHandler();
+    private FileHandler fileHandler = new FileHandlerLegacy();
 
     public FileHandler getFileHandler() {
         return fileHandler;
