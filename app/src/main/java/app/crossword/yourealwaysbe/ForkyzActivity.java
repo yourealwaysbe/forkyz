@@ -2,6 +2,7 @@ package app.crossword.yourealwaysbe;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -30,6 +31,17 @@ public class ForkyzActivity extends AppCompatActivity {
     protected SharedPreferences prefs;
     public NightModeHelper nightMode;
 
+    private OnSharedPreferenceChangeListener prefChangeListener
+        = new OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(
+                SharedPreferences prefs, String key
+            ) {
+                if (ForkyzApplication.STORAGE_LOC_PREF.equals(key)) {
+                    ForkyzActivity.this.finish();
+                }
+            }
+        };
+
     protected FileHandler getFileHandler() {
         return ForkyzApplication.getInstance().getFileHandler();
     }
@@ -39,6 +51,8 @@ public class ForkyzActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         this.prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        this.prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
 
         final FileHandler fileHandler = getFileHandler();
 

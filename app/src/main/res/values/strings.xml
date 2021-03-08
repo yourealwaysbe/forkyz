@@ -32,6 +32,11 @@
     <string name="preview">Preview</string>
 
     <!-- preferences -->
+    <string name="storage_location">Storage Location</string>
+    <string name="storage_location_desc">Configure where Forkyz stores/finds its files. Restart app after change.</string>
+    <string name="internal_storage">App Internal Storage</string>
+    <string name="legacy_external_storage">External SD crosswords directory (legacy, Android 10 and previous)</string>
+    <string name="storage_changed_please_restart">Storage location changed. Please restart Forkyz.</string>
     <string name="select_sources">Select Puzzle Sources</string>
     <string name="daily_crosswords">Daily Crosswords</string>
     <string name="daily_crosswords_desc">Puzzles which update daily.</string>

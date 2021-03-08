@@ -3,6 +3,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 >
+    <androidx.preference.PreferenceCategory
+        android:title="@string/storage_location"
+    >
+        <androidx.preference.ListPreference
+            android:title="@string/storage_location"
+            android:summary="@string/storage_location_desc"
+            android:key="storageLocation"
+            android:defaultValue="@string/internal_storage"
+            android:entries="@array/storageLocations"
+            android:entryValues="@array/storageLocations"
+        />
+    </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory
         android:title="@string/select_sources"

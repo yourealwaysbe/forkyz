@@ -2,10 +2,12 @@ package app.crossword.yourealwaysbe.forkyz;
 
 import android.app.Application;
 import android.content.Intent;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.widget.Toast;
 import androidx.preference.PreferenceManager;
 
 import app.crossword.yourealwaysbe.io.IO;
@@ -13,6 +15,7 @@ import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
+import app.crossword.yourealwaysbe.util.files.FileHandlerInternal;
 import app.crossword.yourealwaysbe.util.files.FileHandlerLegacy;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
@@ -34,7 +37,9 @@ import okhttp3.CookieJar;
 
 public class ForkyzApplication extends Application {
 
-    public static String PUZZLE_DOWNLOAD_CHANNEL_ID = "forkyz.downloads";
+    public static final String PUZZLE_DOWNLOAD_CHANNEL_ID = "forkyz.downloads";
+    public static final String STORAGE_LOC_PREF = "storageLocation";
+
     private static ForkyzApplication INSTANCE;
     private Playboard board;
     private FileHandle baseFile;
@@ -42,7 +47,24 @@ public class ForkyzApplication extends Application {
     private SharedPreferences settings;
     private AtomicReference<PersistentCookieJar> cookieJar = new AtomicReference<>(null);
 
-    private FileHandler fileHandler = new FileHandlerLegacy();
+    private FileHandler fileHandler;
+
+    private OnSharedPreferenceChangeListener prefChangeListener
+        = new OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(
+                SharedPreferences prefs, String key
+            ) {
+                if (STORAGE_LOC_PREF.equals(key)) {
+                    Toast t = Toast.makeText(
+                        ForkyzApplication.this,
+                        R.string.storage_changed_please_restart,
+                        Toast.LENGTH_LONG
+                    );
+                    t.show();
+                    ForkyzApplication.this.setFileHander();
+                }
+            }
+        };
 
     public FileHandler getFileHandler() {
         return fileHandler;
@@ -93,6 +115,11 @@ public class ForkyzApplication extends Application {
         INSTANCE = this;
         // Initialize credentials and service object.
         settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        setFileHander();
+
+        settings.registerOnSharedPreferenceChangeListener(prefChangeListener);
+
         super.onCreate();
 
         AndroidVersionUtils.Factory.getInstance().createNotificationChannel(this);
@@ -153,5 +180,17 @@ public class ForkyzApplication extends Application {
 
     public static ForkyzApplication getInstance(){
         return INSTANCE;
+    }
+
+    private void setFileHander() {
+        String locPref
+            = settings.getString(
+                STORAGE_LOC_PREF, getString(R.string.internal_storage)
+            );
+
+        if (locPref.equals(getString(R.string.legacy_external_storage)))
+            fileHandler = new FileHandlerLegacy();
+        else
+            fileHandler = new FileHandlerInternal(this);
     }
 }
