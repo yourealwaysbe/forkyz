@@ -48,6 +48,10 @@ public abstract class FileHandler {
 
     protected abstract FileHandle getMetaFileHandle(FileHandle puzFile);
 
+    public boolean exists(PuzMetaFile pm) {
+        return exists(pm.getFileHandle()) && exists(getMetaFileHandle(pm));
+    }
+
     public void delete(PuzMetaFile pm) {
         delete(pm.getFileHandle());
         delete(getMetaFileHandle(pm));

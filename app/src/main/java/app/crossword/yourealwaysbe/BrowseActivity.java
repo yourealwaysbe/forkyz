@@ -395,9 +395,12 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         if (this.currentAdapter == null) {
             this.render();
         } else {
-            if (lastOpenedPuzMeta != null) {
+            FileHandler fileHandler = getFileHandler();
+
+            if (lastOpenedPuzMeta != null
+                    && fileHandler.exists(lastOpenedPuzMeta)) {
                 try {
-                    getFileHandler().reloadMeta(lastOpenedPuzMeta);
+                    fileHandler.reloadMeta(lastOpenedPuzMeta);
 
                     CircleProgressBar bar = (CircleProgressBar) lastOpenedView.findViewById(R.id.puzzle_progress);
 
@@ -409,7 +412,10 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    lastOpenedPuzMeta = null;
                 }
+            } else {
+                lastOpenedPuzMeta = null;
             }
         }
 
