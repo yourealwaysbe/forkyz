@@ -10,6 +10,8 @@ import java.lang.Iterable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 
 import android.net.Uri;
 
@@ -74,28 +76,44 @@ public abstract class FileHandler {
     public PuzMetaFile[] getPuzFiles(DirHandle dirHandle, String sourceMatch) {
         ArrayList<PuzMetaFile> files = new ArrayList<>();
 
+        // Use a caching approach to avoid repeated interaction with
+        // filesystem (which is good for content resolver)
+        Map<String, FileHandle> puzFiles = new HashMap<>();
+        Map<String, FileHandle> metaFiles = new HashMap<>();
+
         for (FileHandle f : listFiles(dirHandle)) {
-            if (getName(f).endsWith(".puz")) {
-                PuzzleMeta m = null;
+            String fileName = getName(f);
+            if (fileName.endsWith(".puz")) {
+                puzFiles.put(fileName, f);
+            } else if (fileName.endsWith(".forkyz")) {
+                metaFiles.put(fileName, f);
+            }
+        }
 
-                FileHandle mf = getMetaFileHandle(f);
-                if (exists(mf)) {
-                    try (
-                        DataInputStream is = new DataInputStream(
-                            getInputStream(mf)
-                        )
-                    ) {
-                        m = IO.readMeta(is);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        for (Map.Entry<String, FileHandle> entry : puzFiles.entrySet()) {
+            String fileName = entry.getKey();
+            FileHandle puzFile = entry.getValue();
+
+            String metaName = getMetaFileName(puzFile);
+
+            PuzzleMeta meta = null;
+
+            if (metaFiles.containsKey(metaName)) {
+                try (
+                    DataInputStream is = new DataInputStream(
+                        getInputStream(metaFiles.get(metaName))
+                    )
+                ) {
+                    meta = IO.readMeta(is);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            }
 
-                PuzMetaFile h = new PuzMetaFile(f, m);
+            PuzMetaFile h = new PuzMetaFile(puzFile, meta);
 
-                if ((sourceMatch == null) || sourceMatch.equals(h.getSource())) {
-                    files.add(h);
-                }
+            if ((sourceMatch == null) || sourceMatch.equals(h.getSource())) {
+                files.add(h);
             }
         }
 
@@ -167,5 +185,10 @@ public abstract class FileHandler {
 
     protected DirHandle getSaveTempDirectory() {
         return getTempDirectory(getCrosswordsDirectory());
+    }
+
+    protected String getMetaFileName(FileHandle puzFile) {
+        String name = getName(puzFile);
+        return name.substring(0, name.lastIndexOf(".")) + ".forkyz";
     }
 }
