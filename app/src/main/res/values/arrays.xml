@@ -54,6 +54,7 @@
      </string-array>
     <string-array name="storageLocations">
        <item>@string/internal_storage</item>
-       <item>@string/legacy_external_storage</item>
+       <item>@string/external_storage_saf</item>
+       <item>@string/external_storage_legacy</item>
      </string-array>
 </resources>

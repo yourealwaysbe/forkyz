@@ -39,6 +39,7 @@ public class ForkyzApplication extends Application {
 
     public static final String PUZZLE_DOWNLOAD_CHANNEL_ID = "forkyz.downloads";
     public static final String STORAGE_LOC_PREF = "storageLocation";
+    public static final String STORAGE_LOC_SAF_URI = "storageLocationSAFURI";
 
     private static ForkyzApplication INSTANCE;
     private Playboard board;
@@ -54,7 +55,8 @@ public class ForkyzApplication extends Application {
             public void onSharedPreferenceChanged(
                 SharedPreferences prefs, String key
             ) {
-                if (STORAGE_LOC_PREF.equals(key)) {
+                if (STORAGE_LOC_PREF.equals(key)
+                        || STORAGE_LOC_SAF_URI.equals(key)) {
                     Toast t = Toast.makeText(
                         ForkyzApplication.this,
                         R.string.storage_changed_please_restart,
@@ -188,7 +190,7 @@ public class ForkyzApplication extends Application {
                 STORAGE_LOC_PREF, getString(R.string.internal_storage)
             );
 
-        if (locPref.equals(getString(R.string.legacy_external_storage)))
+        if (locPref.equals(getString(R.string.external_storage_legacy)))
             fileHandler = new FileHandlerLegacy();
         else
             fileHandler = new FileHandlerInternal(this);

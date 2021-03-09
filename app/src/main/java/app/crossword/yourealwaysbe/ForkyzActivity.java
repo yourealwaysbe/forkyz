@@ -36,7 +36,8 @@ public class ForkyzActivity extends AppCompatActivity {
             public void onSharedPreferenceChanged(
                 SharedPreferences prefs, String key
             ) {
-                if (ForkyzApplication.STORAGE_LOC_PREF.equals(key)) {
+                if (ForkyzApplication.STORAGE_LOC_PREF.equals(key)
+                        || ForkyzApplication.STORAGE_LOC_SAF_URI.equals(key)) {
                     ForkyzActivity.this.finish();
                 }
             }
