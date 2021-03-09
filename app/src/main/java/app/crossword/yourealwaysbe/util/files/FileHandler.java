@@ -31,7 +31,6 @@ public abstract class FileHandler {
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
     public abstract boolean exists(FileHandle file);
-    public abstract int numFiles(DirHandle dir);
     public abstract Iterable<FileHandle> listFiles(final DirHandle dir);
     public abstract Uri getUri(FileHandle f);
     public abstract String getName(FileHandle f);

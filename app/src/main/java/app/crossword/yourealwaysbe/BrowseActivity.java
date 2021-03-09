@@ -615,15 +615,10 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
         final FileHandler fileHandler = getFileHandler();
         final DirHandle directory = viewArchive ? BrowseActivity.this.archiveFolder : BrowseActivity.this.crosswordsFolder;
-        //Only spawn a thread if there are a lot of puzzles.
-        // Using SDK rev as a proxy to decide whether you have a slow processor or not.
 
         boolean dirExists = fileHandler.exists(directory);
-        int numFiles = fileHandler.numFiles(directory);
-        int minFilesForThread
-            = (android.os.Build.VERSION.SDK_INT >= 5) ? 500 : 160;
 
-        if (dirExists && numFiles > minFilesForThread) {
+        if (dirExists) {
             final View progressBar
                 = BrowseActivity.this.findViewById( R.id.please_wait_notice);
             progressBar.setVisibility(View.VISIBLE);
