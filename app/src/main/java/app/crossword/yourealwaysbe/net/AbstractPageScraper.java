@@ -48,8 +48,8 @@ public class AbstractPageScraper {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
         URL u = new URL(url);
-        FileHandle output= fileHandler.getFileHandle(
-            AbstractDownloader.DOWNLOAD_DIR, fileName
+        FileHandle output = fileHandler.createFileHandle(
+            AbstractDownloader.getDownloadDir(), fileName
         );
         try (OutputStream fos = fileHandler.getOutputStream(output)) {
             IO.copyStream(u.openStream(), fos);
@@ -146,15 +146,15 @@ public class AbstractPageScraper {
 
             for (String url : urls) {
                 String filename = urlsToFilenames.get(url);
-                FileHandle cwFile = fileHandler.getFileHandle(
-                    AbstractDownloader.DOWNLOAD_DIR, filename
+
+                boolean exists = fileHandler.exists(
+                    AbstractDownloader.getDownloadDir(), filename
                 );
-                FileHandle archiveFile = fileHandler.getFileHandle(
-                    AbstractDownloader.ARCHIVE_DIR, filename
+                exists = exists || fileHandler.exists(
+                    AbstractDownloader.getArchiveDir(), filename
                 );
-                if (!fileHandler.exists(cwFile)
-                        && !fileHandler.exists(archiveFile)
-                        && (scrapedFiles.size() < 3)) {
+
+                if (!exists && (scrapedFiles.size() < 3)) {
                     System.out.println("Attempting " + url + "  scraped "
                             + scrapedFiles.size());
 

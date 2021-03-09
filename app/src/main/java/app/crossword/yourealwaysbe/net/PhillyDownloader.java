@@ -15,7 +15,7 @@ public class PhillyDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public PhillyDownloader() {
-        super("http://mazerlm.home.comcast.net/~mazerlm/", DOWNLOAD_DIR, NAME);
+        super("http://mazerlm.home.comcast.net/~mazerlm/", getDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

@@ -24,16 +24,18 @@ import app.crossword.yourealwaysbe.versions.DefaultUtil;
 
 public abstract class AbstractDownloader implements Downloader {
     protected static final Logger LOG = Logger.getLogger("app.crossword.yourealwaysbe");
-    public static final DirHandle DOWNLOAD_DIR
-        = ForkyzApplication
+    public static final DirHandle getDownloadDir() {
+        return ForkyzApplication
             .getInstance()
             .getFileHandler()
             .getCrosswordsDirectory();
-    public static final DirHandle ARCHIVE_DIR
-        = ForkyzApplication
+    }
+    public static final DirHandle getArchiveDir() {
+        return ForkyzApplication
             .getInstance()
             .getFileHandler()
             .getArchiveDirectory();
+    }
 
     protected static final Map<String, String> EMPTY_MAP = Collections.emptyMap();
     protected DirHandle downloadDirectory;
@@ -100,7 +102,7 @@ public abstract class AbstractDownloader implements Downloader {
             URL url = new URL(this.baseUrl + urlSuffix);
             System.out.println(url);
 
-            FileHandle f = fileHandler.getFileHandle(
+            FileHandle f = fileHandler.createFileHandle(
                 downloadDirectory, this.createFileName(date)
             );
             PuzzleMeta meta = new PuzzleMeta();
@@ -140,7 +142,7 @@ public abstract class AbstractDownloader implements Downloader {
     protected FileHandle downloadToTempFile(String fullName, LocalDate date) {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
-        FileHandle downloaded = fileHandler.getFileHandle(
+        FileHandle downloaded = fileHandler.createFileHandle(
             tempFolder,
             "txt-tmp"+System.currentTimeMillis()+".txt"
         );

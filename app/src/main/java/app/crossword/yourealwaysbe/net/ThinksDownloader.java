@@ -15,7 +15,11 @@ public class ThinksDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public ThinksDownloader() {
-        super("http://thinks.com/daily-crossword/puzzles/", DOWNLOAD_DIR, NAME);
+        super(
+            "http://thinks.com/daily-crossword/puzzles/",
+            getDownloadDir(),
+            NAME
+        );
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

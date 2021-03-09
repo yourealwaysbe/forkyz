@@ -34,7 +34,11 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
     private static final String NAME = "The Independent's Cryptic Crossword";
 
     public IndependentDailyCrypticDownloader() {
-        super("https://ams.cdn.arkadiumhosted.com/assets/gamesfeed/independent/daily-crossword/", DOWNLOAD_DIR, NAME);
+        super(
+            "https://ams.cdn.arkadiumhosted.com/assets/gamesfeed/independent/daily-crossword/",
+            getDownloadDir(),
+            NAME
+        );
     }
 
     public DayOfWeek[] getDownloadDates() {
@@ -66,8 +70,13 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
 
-        FileHandle f = fileHandler.getFileHandle(
-            downloadDirectory, this.createFileName(date)
+        String fileName = this.createFileName(date);
+
+        if (fileHandler.exists(this.downloadDirectory, fileName))
+            return null;
+
+        FileHandle f = fileHandler.createFileHandle(
+            this.downloadDirectory, this.createFileName(date)
         );
 
         try (

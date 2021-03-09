@@ -13,7 +13,11 @@ public class ISwearDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public ISwearDownloader(){
-    	super("http://wij.theworld.com/puzzles/dailyrecord/", DOWNLOAD_DIR, NAME);
+        super(
+            "http://wij.theworld.com/puzzles/dailyrecord/",
+            getDownloadDir(),
+            NAME
+        );
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

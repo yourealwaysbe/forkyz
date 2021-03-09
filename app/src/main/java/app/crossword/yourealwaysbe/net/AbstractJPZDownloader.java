@@ -36,7 +36,7 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             = ForkyzApplication.getInstance().getFileHandler();
         DownloadResult jpzResult = download(date, urlSuffix, headers, false);
         FileHandle jpzFile = jpzResult.getFileHandle();
-        FileHandle puzFile = fileHandler.getFileHandle(
+        FileHandle puzFile = fileHandler.createFileHandle(
             downloadDirectory, this.createFileName(date)
         );
         try (
@@ -72,7 +72,7 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             URL url = new URL(this.baseUrl + urlSuffix);
             LOG.info("Downloading from "+url);
 
-            FileHandle f = fileHandler.getFileHandle(
+            FileHandle f = fileHandler.createFileHandle(
                 downloadDirectory, this.createFileName(date)+".jpz"
             );
             PuzzleMeta meta = new PuzzleMeta();

@@ -48,7 +48,11 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
     private static final int CW_HEIGHT = 15;
 
     public GuardianDailyCrypticDownloader() {
-        super("https://www.theguardian.com/crosswords/cryptic/", DOWNLOAD_DIR, NAME);
+        super(
+            "https://www.theguardian.com/crosswords/cryptic/",
+            getDownloadDir(),
+            NAME
+        );
     }
 
     public DayOfWeek[] getDownloadDates() {
@@ -73,6 +77,12 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             = ForkyzApplication.getInstance().getFileHandler();
 
         try {
+
+            String fileName = createFileName(date);
+
+            if (fileHandler.exists(downloadDirectory, fileName))
+                return null;
+
             URL url = new URL(this.baseUrl + urlSuffix);
             JSONObject cw = getCrosswordJSON(url);
 
@@ -85,8 +95,8 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
 
             Puzzle puz = readPuzzleFromJSON(cw, date);
 
-            FileHandle f = fileHandler.getFileHandle(
-                downloadDirectory, this.createFileName(date)
+            FileHandle f = fileHandler.createFileHandle(
+                downloadDirectory, fileName
             );
 
             try (

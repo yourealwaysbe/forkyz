@@ -33,7 +33,11 @@ public class KFSDownloader extends AbstractDownloader {
     private DayOfWeek[] days;
 
     public KFSDownloader(String shortName, String fullName, String author, DayOfWeek[] days) {
-        super("http://puzzles.kingdigital.com/javacontent/clues/"+shortName+"/", DOWNLOAD_DIR, fullName);
+        super(
+            "http://puzzles.kingdigital.com/javacontent/clues/"+shortName+"/",
+            getDownloadDir(),
+            fullName
+        );
         this.fullName = fullName;
         this.author = author;
         this.days = days;
@@ -53,13 +57,14 @@ public class KFSDownloader extends AbstractDownloader {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
 
-        FileHandle downloadTo = fileHandler.getFileHandle(
+        String fileName = this.createFileName(date);
+
+        if (fileHandler.exists(this.downloadDirectory, fileName))
+            return null;
+
+        FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, this.createFileName(date)
         );
-
-        if (fileHandler.exists(downloadTo)) {
-            return null;
-        }
 
         FileHandle plainText = downloadToTempFile(this.getName(), date);
 

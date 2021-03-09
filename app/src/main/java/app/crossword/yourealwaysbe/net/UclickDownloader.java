@@ -35,7 +35,7 @@ public class UclickDownloader extends AbstractDownloader {
     private DayOfWeek[] days;
 
     public UclickDownloader(String prefix, String shortName, String fullName, String copyright, DayOfWeek[] days){
-        super(prefix+shortName+"/data/", DOWNLOAD_DIR, fullName);
+        super(prefix+shortName+"/data/", getDownloadDir(), fullName);
         this.shortName = shortName;
         this.fullName = fullName;
         this.copyright = copyright;
@@ -61,13 +61,14 @@ public class UclickDownloader extends AbstractDownloader {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
 
-        FileHandle downloadTo = fileHandler.getFileHandle(
+        String fileName = this.createFileName(date);
+
+        if (fileHandler.exists(this.downloadDirectory, fileName))
+            return null;
+
+        FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, this.createFileName(date)
         );
-
-        if (fileHandler.exists(downloadTo)) {
-            return null;
-        }
 
         FileHandle plainText = downloadToTempFile(date);
 
@@ -111,37 +112,19 @@ public class UclickDownloader extends AbstractDownloader {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
 
-        FileHandle f = fileHandler.getFileHandle(
-            downloadDirectory, this.createFileName(date)
-        );
-
         try {
-            URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
-            LOG.log(Level.INFO, this.fullName+" "+url.toExternalForm());
-            AndroidVersionUtils.Factory.getInstance().downloadFile(url, f, EMPTY_MAP, false, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            f = null;
-        }
-
-        if (f == null) {
-            LOG.log(Level.SEVERE, "Unable to download uclick XML file.");
-
-            return null;
-        }
-
-        try {
-
-            FileHandle tmpFile = fileHandler.getFileHandle(
+            FileHandle tmpFile = fileHandler.createFileHandle(
                 this.tempFolder,
                 "uclick-temp"+System.currentTimeMillis()+".xml"
             );
-            fileHandler.renameTo(f, tmpFile);
-
+            URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
+            AndroidVersionUtils.Factory.getInstance().downloadFile(
+                url, tmpFile, EMPTY_MAP, false, null
+            );
             return tmpFile;
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Unable to move uclick XML file to temporary location.");
-
+            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Unable to download uclick XML file.");
             return null;
         }
     }

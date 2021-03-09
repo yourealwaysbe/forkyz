@@ -31,11 +31,12 @@ public abstract class FileHandler {
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
     public abstract boolean exists(FileHandle file);
+    public abstract boolean exists(DirHandle dir, String fileName);
     public abstract Iterable<FileHandle> listFiles(final DirHandle dir);
     public abstract Uri getUri(FileHandle f);
     public abstract String getName(FileHandle f);
     public abstract long getLastModified(FileHandle file);
-    public abstract FileHandle getFileHandle(DirHandle dir, String fileName);
+    public abstract FileHandle createFileHandle(DirHandle dir, String fileName);
     public abstract void delete(FileHandle fileHandle);
     public abstract void moveTo(FileHandle fileHandle, DirHandle dirHandle);
     public abstract void renameTo(FileHandle src, FileHandle dest);
@@ -151,8 +152,8 @@ public abstract class FileHandler {
         FileHandle metaFile = getMetaFileHandle(fileHandle);
 
         DirHandle tempFolder = getSaveTempDirectory();
-        FileHandle puzTemp = getFileHandle(tempFolder, getName(fileHandle));
-        FileHandle metaTemp = getFileHandle(tempFolder, getName(metaFile));
+        FileHandle puzTemp = createFileHandle(tempFolder, getName(fileHandle));
+        FileHandle metaTemp = createFileHandle(tempFolder, getName(metaFile));
 
         try (
             DataOutputStream puzzle

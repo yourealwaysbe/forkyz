@@ -13,8 +13,10 @@ public class LATimesDownloader extends AbstractJPZDownloader {
 
     public LATimesDownloader() {
         super(
-                "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/",
-                DOWNLOAD_DIR, NAME);
+            "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/",
+            getDownloadDir(),
+            NAME
+        );
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
         headers.put("Accept","*/*");

@@ -15,7 +15,7 @@ public class JonesinDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public JonesinDownloader() {
-        super("http://herbach.dnsalias.com/Jonesin/", DOWNLOAD_DIR, NAME);
+        super("http://herbach.dnsalias.com/Jonesin/", getDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

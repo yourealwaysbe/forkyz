@@ -202,15 +202,12 @@ public class Downloaders {
 
             not.setContentText(contentText).setContentIntent(contentIntent);
 
-            FileHandle downloaded = fileHandler.getFileHandle(
+            boolean exists = fileHandler.exists(
                 crosswords, d.createFileName(date)
             );
-            FileHandle archived = fileHandler.getFileHandle(
+            exists = exists || fileHandler.exists(
                 archive, d.createFileName(date)
             );
-
-            boolean exists = fileHandler.exists(downloaded)
-                || fileHandler.exists(archived);
 
             if (!d.alwaysRun() && exists) {
                 return null;
@@ -226,7 +223,7 @@ public class Downloaders {
                 return null;
             }
 
-            downloaded = downloadResult.getFileHandle();
+            FileHandle downloaded = downloadResult.getFileHandle();
 
             if (downloaded != null) {
                 boolean updatable = false;

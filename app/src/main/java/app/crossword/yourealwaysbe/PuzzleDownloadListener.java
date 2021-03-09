@@ -89,21 +89,19 @@ public class PuzzleDownloadListener implements DownloadListener {
             fileName = fileName + ".puz";
         }
 
+        if (fileHandler.exists(crosswordFolder, fileName)
+                || fileHandler.exists(archiveFolder, fileName)) {
+            sendMessage("Puzzle " + fileName + " already exists.");
+
+            return;
+        }
+
         FileHandle outputFile
-            = fileHandler.getFileHandle(crosswordFolder, fileName);
-        FileHandle archiveOutputFile
-            = fileHandler.getFileHandle(archiveFolder, fileName);
+            = fileHandler.createFileHandle(crosswordFolder, fileName);
 
         try (
             InputStream in = OpenHttpConnection(new URL(url), cookies)
         ) {
-            if (fileHandler.exists(outputFile)
-                    || fileHandler.exists(archiveOutputFile)) {
-                sendMessage("Puzzle " + fileName + " already exists.");
-
-                return;
-            }
-
             try (OutputStream fout = fileHandler.getOutputStream(outputFile);) {
                 byte[] buffer = new byte[1024];
                 int len = 0;

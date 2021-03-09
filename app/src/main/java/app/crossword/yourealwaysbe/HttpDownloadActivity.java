@@ -131,14 +131,12 @@ public class HttpDownloadActivity extends ForkyzActivity {
             }
 
             InputStream is = response.body().byteStream();
-            FileHandle puzFile = fileHandler.getFileHandle(
+            FileHandle puzFile = fileHandler.createFileHandle(
                 crosswordsFolder, filename
             );
 
             try (
-                OutputStream fos = fileHandler.getOutputStream(
-                    fileHandler.getFileHandle(crosswordsFolder, filename)
-                )
+                OutputStream fos = fileHandler.getOutputStream(puzFile)
             ) {
                 copyStream(is, fos);
             }

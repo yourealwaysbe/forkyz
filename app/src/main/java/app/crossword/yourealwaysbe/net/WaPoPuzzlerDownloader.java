@@ -15,8 +15,11 @@ public class WaPoPuzzlerDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public WaPoPuzzlerDownloader() {
-        super("http://crosswords.washingtonpost.com/wp-srv/style/crosswords/util/csserve2.cgi?t=puz&z=puzzler&f=",
-            DOWNLOAD_DIR, NAME);
+        super(
+            "http://crosswords.washingtonpost.com/wp-srv/style/crosswords/util/csserve2.cgi?t=puz&z=puzzler&f=",
+            getDownloadDir(),
+            NAME
+        );
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

@@ -15,7 +15,7 @@ public class OldBostonGlobeDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public OldBostonGlobeDownloader() {
-        super("http://standalone.com/dl/puz/boston/", DOWNLOAD_DIR, NAME);
+        super("http://standalone.com/dl/puz/boston/", getDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

@@ -15,7 +15,7 @@ public class WSJFridayDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public WSJFridayDownloader() {
-        super("http://herbach.dnsalias.com/wsj/", DOWNLOAD_DIR, NAME);
+        super("http://herbach.dnsalias.com/wsj/", getDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }
