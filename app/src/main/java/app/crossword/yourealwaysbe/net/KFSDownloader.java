@@ -35,7 +35,7 @@ public class KFSDownloader extends AbstractDownloader {
     public KFSDownloader(String shortName, String fullName, String author, DayOfWeek[] days) {
         super(
             "http://puzzles.kingdigital.com/javacontent/clues/"+shortName+"/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             fullName
         );
         this.fullName = fullName;

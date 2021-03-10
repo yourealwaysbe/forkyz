@@ -35,7 +35,7 @@ public class UclickDownloader extends AbstractDownloader {
     private DayOfWeek[] days;
 
     public UclickDownloader(String prefix, String shortName, String fullName, String copyright, DayOfWeek[] days){
-        super(prefix+shortName+"/data/", getDownloadDir(), fullName);
+        super(prefix+shortName+"/data/", getStandardDownloadDir(), fullName);
         this.shortName = shortName;
         this.fullName = fullName;
         this.copyright = copyright;

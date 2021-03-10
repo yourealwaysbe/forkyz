@@ -16,7 +16,7 @@ public class OldLATDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     protected OldLATDownloader() {
-        super("http://www.cruciverb.com/puzzles/lat/", getDownloadDir(), NAME);
+        super("http://www.cruciverb.com/puzzles/lat/", getStandardDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

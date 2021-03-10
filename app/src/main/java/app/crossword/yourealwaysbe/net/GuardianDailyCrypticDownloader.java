@@ -50,7 +50,7 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
     public GuardianDailyCrypticDownloader() {
         super(
             "https://www.theguardian.com/crosswords/cryptic/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
     }
@@ -116,7 +116,7 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             meta.sourceUrl = url.toString();
             meta.updatable = true;
 
-            utils.storeMetas(fileHandler.getUri(f), meta);
+            utils.storeMetas(fileHandler.getUri(f), meta, downloadDirectory);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {

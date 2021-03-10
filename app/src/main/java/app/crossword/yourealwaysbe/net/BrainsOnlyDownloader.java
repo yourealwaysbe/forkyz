@@ -25,7 +25,7 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
     private final String fullName;
 
     public BrainsOnlyDownloader(String baseUrl, String fullName) {
-        super(baseUrl, getDownloadDir(), fullName);
+        super(baseUrl, getStandardDownloadDir(), fullName);
         this.fullName = fullName;
     }
 

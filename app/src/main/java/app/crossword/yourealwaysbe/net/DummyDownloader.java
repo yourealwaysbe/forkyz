@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import android.content.Context;
 
+import app.crossword.yourealwaysbe.util.files.DirHandle;
 
 /**
  * Does not actually download any puzzles; just adds an "All Available" option to the dropdown.
@@ -20,6 +21,11 @@ public class DummyDownloader implements Downloader {
 
     @Override
     public String getName() {
+        return null;
+    }
+
+    @Override
+    public DirHandle getDownloadDir() {
         return null;
     }
 

@@ -17,7 +17,7 @@ public class ThinksDownloader extends AbstractDownloader {
     public ThinksDownloader() {
         super(
             "http://thinks.com/daily-crossword/puzzles/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
         nf.setMinimumIntegerDigits(2);

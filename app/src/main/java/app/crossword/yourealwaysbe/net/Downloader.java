@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import android.content.Context;
 
+import app.crossword.yourealwaysbe.util.files.DirHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 
@@ -57,6 +58,8 @@ public interface Downloader {
     void setContext(Context context);
 
     DayOfWeek[] getDownloadDates();
+
+    DirHandle getDownloadDir();
 
     String getName();
 

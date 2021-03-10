@@ -233,7 +233,11 @@ public class Downloaders {
                 meta.sourceUrl = d.sourceUrl(date);
                 meta.updatable = updatable;
 
-                if (processDownloadedPuzzle(downloaded, meta)) {
+                boolean processed = processDownloadedPuzzle(
+                    d.getDownloadDir(), downloaded, meta
+                );
+
+                if (processed) {
                     if (!this.supressMessages) {
                         this.postDownloadedNotification(notificationId, d.getName(), downloaded);
                     }
@@ -249,7 +253,7 @@ public class Downloaders {
     }
 
     public static boolean processDownloadedPuzzle(
-        FileHandle downloaded, PuzzleMeta meta
+        DirHandle downloadDir, FileHandle downloaded, PuzzleMeta meta
     ) {
         final FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
@@ -263,7 +267,7 @@ public class Downloaders {
             puz.setSourceUrl(meta.sourceUrl);
             puz.setUpdatable(meta.updatable);
 
-            fileHandler.save(puz, downloaded);
+            fileHandler.saveCreateMeta(puz, downloadDir, downloaded);
 
             return true;
         } catch (Exception ioe) {

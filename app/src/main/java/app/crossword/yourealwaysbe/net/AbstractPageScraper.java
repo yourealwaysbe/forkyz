@@ -50,7 +50,7 @@ public class AbstractPageScraper {
         URL u = new URL(url);
 
         FileHandle output = fileHandler.createFileHandle(
-            AbstractDownloader.getDownloadDir(), fileName
+            AbstractDownloader.getStandardDownloadDir(), fileName
         );
         if (output == null)
             return null;
@@ -104,7 +104,7 @@ public class AbstractPageScraper {
         return this.sourceName;
     }
 
-    public boolean processFile(FileHandle file, String sourceUrl) {
+    private boolean processFile(FileHandle file, String sourceUrl) {
         final FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
         try {
@@ -116,7 +116,10 @@ public class AbstractPageScraper {
             puz.setSource(this.sourceName);
             puz.setSourceUrl(sourceUrl);
             puz.setDate(LocalDate.now());
-            fileHandler.save(puz, file);
+
+            DirHandle dir = AbstractDownloader.getStandardDownloadDir();
+
+            fileHandler.saveCreateMeta(puz, dir, file);
 
             return true;
         } catch (Exception e) {
@@ -152,10 +155,10 @@ public class AbstractPageScraper {
                 String filename = urlsToFilenames.get(url);
 
                 boolean exists = fileHandler.exists(
-                    AbstractDownloader.getDownloadDir(), filename
+                    AbstractDownloader.getStandardDownloadDir(), filename
                 );
                 exists = exists || fileHandler.exists(
-                    AbstractDownloader.getArchiveDir(), filename
+                    AbstractDownloader.getStandardArchiveDir(), filename
                 );
 
                 if (!exists && (scrapedFiles.size() < 3)) {

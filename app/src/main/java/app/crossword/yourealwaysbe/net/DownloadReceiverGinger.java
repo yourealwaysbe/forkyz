@@ -54,9 +54,13 @@ public class DownloadReceiverGinger extends BroadcastReceiver {
         try {
             FileHandler fileHandler
                 = ForkyzApplication.getInstance().getFileHandler();
+
+            DownloadReceiver.Metas metas = DownloadReceiver.metas.remove(uri);
+
             Downloaders.processDownloadedPuzzle(
+                metas.getParentDir(),
                 fileHandler.getFileHandle(uri),
-                DownloadReceiver.metas.remove(uri)
+                metas.getPuzMeta()
             );
         } catch (Exception e) {
             e.printStackTrace();

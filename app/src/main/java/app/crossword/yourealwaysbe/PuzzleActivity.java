@@ -12,7 +12,7 @@ import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Playboard.Word;
 import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
-import app.crossword.yourealwaysbe.util.files.FileHandle;
+import app.crossword.yourealwaysbe.util.files.PuzHandle;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -180,8 +180,8 @@ public abstract class PuzzleActivity
         return timer;
     }
 
-    protected FileHandle getBaseFile() {
-        return ForkyzApplication.getInstance().getBaseFile();
+    protected PuzHandle getPuzHandle() {
+        return ForkyzApplication.getInstance().getPuzHandle();
     }
 
     protected void saveBoard() throws IOException {

@@ -17,7 +17,7 @@ public class WaPoDownloader extends AbstractJPZDownloader {
     public WaPoDownloader() {
         super(
             "https://washingtonpost.as.arkadiumhosted.com/clients/washingtonpost-content/crossynergy/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
         nf.setMinimumIntegerDigits(2);

@@ -88,10 +88,10 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             meta.sourceUrl = url.toString();
             meta.updatable = false;
 
-            utils.storeMetas(fileHandler.getUri(f), meta);
+            utils.storeMetas(fileHandler.getUri(f), meta, downloadDirectory);
             if( canDefer ){
                 if (utils.downloadFile(url, f, headers, true, this.getName())) {
-                    DownloadReceiver.metas.remove(fileHandler.getUri(f));
+                    utils.removeMetas(fileHandler.getUri(f));
 
                     return new Downloader.DownloadResult(f);
                 } else {

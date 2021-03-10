@@ -15,7 +15,7 @@ public class ISwearDownloader extends AbstractDownloader {
     public ISwearDownloader(){
         super(
             "http://wij.theworld.com/puzzles/dailyrecord/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
         nf.setMinimumIntegerDigits(2);

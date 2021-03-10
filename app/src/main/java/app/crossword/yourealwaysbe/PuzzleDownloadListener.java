@@ -124,7 +124,9 @@ public class PuzzleDownloadListener implements DownloadListener {
             meta.date = LocalDate.now();
 
             boolean processed
-                = Downloaders.processDownloadedPuzzle(outputFile, meta);
+                = Downloaders.processDownloadedPuzzle(
+                    crosswordFolder, outputFile, meta
+                );
 
             if (processed) {
                 sendMessage(mContext.getString(

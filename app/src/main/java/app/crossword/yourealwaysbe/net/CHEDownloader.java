@@ -16,7 +16,7 @@ public class CHEDownloader extends AbstractDownloader {
 
     public CHEDownloader() {
         super(
-            "http://chronicle.com/items/biz/puzzles/", getDownloadDir(), NAME
+            "http://chronicle.com/items/biz/puzzles/", getStandardDownloadDir(), NAME
         );
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);

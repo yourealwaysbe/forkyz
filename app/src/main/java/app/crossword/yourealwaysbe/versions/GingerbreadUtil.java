@@ -14,6 +14,7 @@ import app.crossword.yourealwaysbe.ForkyzActivity;
 import app.crossword.yourealwaysbe.net.DownloadReceiver;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 import app.crossword.yourealwaysbe.util.NightModeHelper;
+import app.crossword.yourealwaysbe.util.files.DirHandle;
 
 
 public class GingerbreadUtil extends DefaultUtil {
@@ -45,10 +46,15 @@ public class GingerbreadUtil extends DefaultUtil {
 
     }
 
-    public void storeMetas(Uri uri, PuzzleMeta meta) {
-		DownloadReceiver.metas.put(uri, meta);
-
+    public void storeMetas(Uri uri, PuzzleMeta meta, DirHandle parentDir) {
+        DownloadReceiver.metas.put(uri,
+            new DownloadReceiver.Metas(meta, parentDir)
+        );
 	}
+
+    public DownloadReceiver.Metas removeMetas(Uri uri) {
+        return DownloadReceiver.metas.remove(uri);
+    }
 
 	public void hideWindowTitle(AppCompatActivity a) {
 		a.requestWindowFeature(Window.FEATURE_NO_TITLE);

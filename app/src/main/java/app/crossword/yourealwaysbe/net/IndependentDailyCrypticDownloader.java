@@ -36,7 +36,7 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
     public IndependentDailyCrypticDownloader() {
         super(
             "https://ams.cdn.arkadiumhosted.com/assets/gamesfeed/independent/daily-crossword/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
     }
@@ -98,7 +98,9 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
                 meta.sourceUrl = url.toString();
                 meta.updatable = true;
 
-                utils.storeMetas(fileHandler.getUri(f), meta);
+                utils.storeMetas(
+                    fileHandler.getUri(f), meta, this.downloadDirectory
+                );
             }
         } catch (IOException ioe) {
             LOG.log(Level.SEVERE, "Exception converting Independent XML puzzle into Across Lite format.", ioe);

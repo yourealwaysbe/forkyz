@@ -15,7 +15,7 @@ public class InkwellDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     public InkwellDownloader() {
-        super("http://herbach.dnsalias.com/Tausig/", getDownloadDir(), NAME);
+        super("http://herbach.dnsalias.com/Tausig/", getStandardDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

@@ -26,7 +26,7 @@ public class AVClubDownloader extends AbstractDownloader {
     NumberFormat nf = NumberFormat.getInstance();
 
     protected AVClubDownloader() {
-        super("http://herbach.dnsalias.com/Tausig/", getDownloadDir(), NAME);
+        super("http://herbach.dnsalias.com/Tausig/", getStandardDownloadDir(), NAME);
         nf.setMinimumIntegerDigits(2);
         nf.setMaximumFractionDigits(0);
     }

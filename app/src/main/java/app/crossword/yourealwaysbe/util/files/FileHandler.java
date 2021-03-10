@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 
+import android.content.Intent;
 import android.net.Uri;
 
 import app.crossword.yourealwaysbe.io.IO;
@@ -25,14 +26,23 @@ import app.crossword.yourealwaysbe.puz.PuzzleMeta;
  * Implementations provided for different file backends
  */
 public abstract class FileHandler {
+    private static final String DIR_URI
+        = "app.crossword.yourealwaysbe.util.files.PuzHandle.dirUri";
+    private static final String PUZ_URI
+        = "app.crossword.yourealwaysbe.util.files.PuzHandle.puzUri";
+    private static final String META_URI
+        = "app.crossword.yourealwaysbe.util.files.PuzHandle.metaUri";
+
     public abstract DirHandle getCrosswordsDirectory();
     public abstract DirHandle getArchiveDirectory();
     public abstract DirHandle getTempDirectory(DirHandle baseDir);
+    public abstract DirHandle getDirHandle(Uri uri);
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
     public abstract boolean exists(FileHandle file);
     public abstract boolean exists(DirHandle dir, String fileName);
     public abstract Iterable<FileHandle> listFiles(final DirHandle dir);
+    public abstract Uri getUri(DirHandle f);
     public abstract Uri getUri(FileHandle f);
     public abstract String getName(FileHandle f);
     public abstract long getLastModified(FileHandle file);
@@ -143,7 +153,7 @@ public abstract class FileHandler {
             }
 
             PuzMetaFile h = new PuzMetaFile(
-                new PuzHandle(puzFile, metaFile),
+                new PuzHandle(dirHandle, puzFile, metaFile),
                 meta
             );
 
@@ -184,16 +194,30 @@ public abstract class FileHandler {
     }
 
     public void save(Puzzle puz, PuzMetaFile puzMeta) throws IOException {
-        save(puz, puzMeta.getPuzHandle().getPuzFileHandle());
+        save(puz, puzMeta.getPuzHandle());
     }
 
-    // TODO: replace with saveCreateMeta
-    public void save(Puzzle puz, FileHandle fileHandle) throws IOException {
+    /**
+     * Save puzzle and meta data
+     *
+     * If puzHandle's meta handle is null, a new meta file will be
+     * created and puzHandle is updated with the new meta file handle
+     */
+    public void save(Puzzle puz, PuzHandle puzHandle) throws IOException {
         long incept = System.currentTimeMillis();
-        FileHandle metaFile = getMetaFileHandle(fileHandle);
+
+        FileHandle puzFile = puzHandle.getPuzFileHandle();
+        FileHandle metaFile = puzHandle.getMetaFileHandle();
+
+        if (metaFile == null) {
+            String metaName = getMetaFileName(puzFile);
+            metaFile = createFileHandle(puzHandle.getDirHandle(), metaName);
+            if (metaFile == null)
+                throw new IOException("Could not create meta file");
+        }
 
         DirHandle tempFolder = getSaveTempDirectory();
-        FileHandle puzTemp = createFileHandle(tempFolder, getName(fileHandle));
+        FileHandle puzTemp = createFileHandle(tempFolder, getName(puzFile));
         FileHandle metaTemp = createFileHandle(tempFolder, getName(metaFile));
 
         try (
@@ -205,8 +229,23 @@ public abstract class FileHandler {
             IO.save(puz, puzzle, meta);
         }
 
-        renameTo(puzTemp, fileHandle);
+        renameTo(puzTemp, puzFile);
         renameTo(metaTemp, metaFile);
+
+        puzHandle.setMetaFileHandle(metaFile);
+    }
+
+    /**
+     * Save the puz file to the file handle and create a meta file
+     *
+     * Assumed that a meta file does not exist already
+     *
+     * @param puzDir the directory containing puzFile (and where the
+     * metta will be created)
+     */
+    public void saveCreateMeta(Puzzle puz, DirHandle puzDir, FileHandle puzFile)
+        throws IOException {
+        save(puz, new PuzHandle(puzDir, puzFile, null));
     }
 
     public void reloadMeta(PuzMetaFile pm) throws IOException {
@@ -222,6 +261,42 @@ public abstract class FileHandler {
         ) {
             pm.setMeta(IO.readMeta(is));
         };
+    }
+
+    /**
+     * Write the handle to an intent
+     *
+     * Useful for starting activities
+     */
+    public void writePuzHandleToIntent(PuzHandle ph, Intent i) {
+        i.putExtra(DIR_URI, getUri(ph.getDirHandle()).toString());
+        i.putExtra(PUZ_URI, getUri(ph.getPuzFileHandle()).toString());
+
+        String metaUri = null;
+        FileHandle metaHandle = ph.getMetaFileHandle();
+        if (metaHandle != null)
+            metaUri = getUri(metaHandle).toString();
+
+        i.putExtra(META_URI, metaUri);
+    }
+
+    /**
+     * Read a previously written handle from an intent
+     *
+     * Useful for starting activities
+     */
+    public PuzHandle readPuzHandleFromIntent(Intent i) {
+        String dirUri = i.getStringExtra(DIR_URI);
+        String puzUri = i.getStringExtra(PUZ_URI);
+        String metaUri = i.getStringExtra(META_URI);
+
+        DirHandle dirHandle = getDirHandle(Uri.parse(dirUri));
+        FileHandle puzHandle = getFileHandle(Uri.parse(puzUri));
+        FileHandle metaHandle = null;
+        if (metaUri != null)
+            metaHandle = getFileHandle(Uri.parse(metaUri));
+
+        return new PuzHandle(dirHandle, puzHandle, metaHandle);
     }
 
     protected FileHandle getMetaFileHandle(PuzMetaFile pm) {

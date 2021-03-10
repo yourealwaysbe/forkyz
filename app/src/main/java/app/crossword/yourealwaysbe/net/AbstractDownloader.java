@@ -24,13 +24,13 @@ import app.crossword.yourealwaysbe.versions.DefaultUtil;
 
 public abstract class AbstractDownloader implements Downloader {
     protected static final Logger LOG = Logger.getLogger("app.crossword.yourealwaysbe");
-    public static final DirHandle getDownloadDir() {
+    public static final DirHandle getStandardDownloadDir() {
         return ForkyzApplication
             .getInstance()
             .getFileHandler()
             .getCrosswordsDirectory();
     }
-    public static final DirHandle getArchiveDir() {
+    public static final DirHandle getStandardArchiveDir() {
         return ForkyzApplication
             .getInstance()
             .getFileHandler()
@@ -56,6 +56,11 @@ public abstract class AbstractDownloader implements Downloader {
                 .getInstance()
                 .getFileHandler()
                 .getTempDirectory(downloadDirectory);
+    }
+
+    @Override
+    public DirHandle getDownloadDir() {
+        return downloadDirectory;
     }
 
     public void setContext(Context ctx) {
@@ -115,10 +120,10 @@ public abstract class AbstractDownloader implements Downloader {
             meta.updatable = false;
 
             Uri fileUri = fileHandler.getUri(f);
-            utils.storeMetas(fileUri, meta);
+            utils.storeMetas(fileUri, meta, downloadDirectory);
             if( canDefer ){
                 if (utils.downloadFile(url, f, headers, true, this.getName())) {
-                    DownloadReceiver.metas.remove(fileUri);
+                    utils.removeMetas(fileUri);
 
                     return new Downloader.DownloadResult(f);
                 } else {

@@ -13,10 +13,10 @@ import androidx.preference.PreferenceManager;
 import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.Playboard;
 import app.crossword.yourealwaysbe.puz.Puzzle;
-import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.util.files.FileHandlerInternal;
 import app.crossword.yourealwaysbe.util.files.FileHandlerLegacy;
+import app.crossword.yourealwaysbe.util.files.PuzHandle;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -43,7 +43,7 @@ public class ForkyzApplication extends Application {
 
     private static ForkyzApplication INSTANCE;
     private Playboard board;
-    private FileHandle baseFile;
+    private PuzHandle puzHandle;
     private PlayboardRenderer renderer;
     private SharedPreferences settings;
     private AtomicReference<PersistentCookieJar> cookieJar = new AtomicReference<>(null);
@@ -75,23 +75,23 @@ public class ForkyzApplication extends Application {
     /**
      * Set the board and base file of the puzzle loaded on it
      */
-    public void setBoard(Playboard board, FileHandle baseFile){
+    public void setBoard(Playboard board, PuzHandle puzHandle){
         this.board = board;
-        this.baseFile = baseFile;
+        this.puzHandle = puzHandle;
     }
 
     public Playboard getBoard() {
          return board;
     }
 
-    public FileHandle getBaseFile() {
-        return baseFile;
+    public PuzHandle getPuzHandle() {
+        return puzHandle;
     }
 
     public void saveBoard() throws IOException {
-        FileHandle baseFile = getBaseFile();
-        if (baseFile == null)
-            throw new IOException("No base file to save puzzle to.");
+        PuzHandle puzHandle = getPuzHandle();
+        if (puzHandle == null)
+            throw new IOException("No puz handle to save puzzle to.");
 
         Playboard board = getBoard();
         if (board == null)
@@ -101,7 +101,7 @@ public class ForkyzApplication extends Application {
         if (puz == null)
             throw new IOException("No puzzle associated to the board to save.");
 
-        getFileHandler().save(puz, baseFile);
+        getFileHandler().save(puz, puzHandle);
     }
 
     public void setRenderer(PlayboardRenderer renderer){

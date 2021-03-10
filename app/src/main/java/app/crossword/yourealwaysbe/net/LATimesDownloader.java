@@ -14,7 +14,7 @@ public class LATimesDownloader extends AbstractJPZDownloader {
     public LATimesDownloader() {
         super(
             "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/",
-            getDownloadDir(),
+            getStandardDownloadDir(),
             NAME
         );
         nf.setMinimumIntegerDigits(2);
