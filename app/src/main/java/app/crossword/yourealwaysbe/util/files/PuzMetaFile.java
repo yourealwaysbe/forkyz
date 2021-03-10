@@ -15,26 +15,28 @@ import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 
 public class PuzMetaFile
         implements Comparable<PuzMetaFile> {
-    public FileHandle file;
+    public PuzHandle handle;
     public PuzzleMeta meta;
 
-    public PuzMetaFile(FileHandle f, PuzzleMeta meta) {
-        this.file = f;
+    PuzMetaFile(PuzHandle handle, PuzzleMeta meta) {
+        this.handle = handle;
         this.meta = meta;
     }
 
-    public FileHandle getFileHandle() { return file; }
+    public PuzHandle getPuzHandle() { return handle; }
 
     public int compareTo(PuzMetaFile other) {
         try {
-            // because LocalDate is day-month-year, fall back to file
-            // modification time
+            // because LocalDate is day-month-year, fall back to name
             int dateCmp = other.getDate().compareTo(this.getDate());
             if (dateCmp != 0)
                 return dateCmp;
-            return Long.compare(
-                getHandler().getLastModified(this.getFileHandle()),
-                getHandler().getLastModified(other.getFileHandle())
+            return getHandler().getName(
+                this.handle.getPuzFileHandle()
+            ).compareTo(
+                getHandler().getName(
+                    other.handle.getPuzFileHandle()
+                )
             );
         } catch (Exception e) {
             return 0;
@@ -51,7 +53,7 @@ public class PuzMetaFile
 
     public LocalDate getDate() {
         if (meta == null) {
-            return getHandler().getModifiedDate(file);
+            return getHandler().getModifiedDate(handle.getPuzFileHandle());
         } else {
             return meta.date;
         }
@@ -73,7 +75,7 @@ public class PuzMetaFile
         if ((meta == null)
                 || (meta.source == null)
                 || (meta.source.length() == 0)) {
-            String fileName = getHandler().getName(file);
+            String fileName = getHandler().getName(handle.getPuzFileHandle());
             return fileName.substring(0, fileName.lastIndexOf("."));
         } else {
             return meta.source;
@@ -82,11 +84,7 @@ public class PuzMetaFile
 
     @Override
     public String toString(){
-        return getHandler().getUri(file).toString();
-    }
-
-    public Uri getUri() {
-        return getHandler().getUri(file);
+        return getHandler().getUri(handle.getPuzFileHandle()).toString();
     }
 
     void setMeta(PuzzleMeta meta) {

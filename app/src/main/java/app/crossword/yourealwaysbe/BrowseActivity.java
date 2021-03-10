@@ -666,9 +666,16 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                     if (lastOpenedPuzMeta == null) {
                         return;
                     }
+
+                    FileHandler fileHandler
+                        = BrowseActivity.this.getFileHandler();
+
                     Intent i = new Intent(
                         Intent.ACTION_EDIT,
-                        lastOpenedPuzMeta.getUri(),
+                        // TODO: replace this with PuzHandle intents
+                        fileHandler.getUri(
+                            lastOpenedPuzMeta.getPuzHandle().getPuzFileHandle()
+                        ),
                         BrowseActivity.this,
                         PlayActivity.class
                     );

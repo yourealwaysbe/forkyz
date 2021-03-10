@@ -58,17 +58,39 @@ public abstract class FileHandler {
     protected abstract FileHandle getMetaFileHandle(FileHandle puzFile);
 
     public boolean exists(PuzMetaFile pm) {
-        return exists(pm.getFileHandle()) && exists(getMetaFileHandle(pm));
+        return exists(pm.getPuzHandle());
+    }
+
+    public boolean exists(PuzHandle ph) {
+        FileHandle metaHandle = ph.getMetaFileHandle();
+        if (metaHandle != null) {
+            return exists(ph.getPuzFileHandle())
+                && exists(ph.getMetaFileHandle());
+        } else {
+            return exists(ph.getPuzFileHandle());
+        }
     }
 
     public void delete(PuzMetaFile pm) {
-        delete(pm.getFileHandle());
-        delete(getMetaFileHandle(pm));
+        delete(pm.getPuzHandle());
     }
 
-    public void moveTo(PuzMetaFile pm, DirHandle dirHandle){
-        moveTo(pm.getFileHandle(), dirHandle);
-        moveTo(getMetaFileHandle(pm), dirHandle);
+    public void delete(PuzHandle ph) {
+        delete(ph.getPuzFileHandle());
+        FileHandle metaHandle = ph.getMetaFileHandle();
+        if (metaHandle != null)
+            delete(metaHandle);
+    }
+
+    public void moveTo(PuzMetaFile pm, DirHandle dirHandle) {
+        moveTo(pm.getPuzHandle(), dirHandle);
+    }
+
+    public void moveTo(PuzHandle ph, DirHandle dirHandle) {
+        moveTo(ph.getPuzFileHandle(), dirHandle);
+        FileHandle metaHandle = ph.getMetaFileHandle();
+        if (metaHandle != null)
+            moveTo(metaHandle, dirHandle);
     }
 
     public PuzMetaFile[] getPuzFiles(DirHandle dir) {
@@ -100,15 +122,17 @@ public abstract class FileHandler {
         for (Map.Entry<String, FileHandle> entry : puzFiles.entrySet()) {
             String fileName = entry.getKey();
             FileHandle puzFile = entry.getValue();
+            FileHandle metaFile = null;
 
             String metaName = getMetaFileName(puzFile);
 
             PuzzleMeta meta = null;
 
             if (metaFiles.containsKey(metaName)) {
+                metaFile = metaFiles.get(metaName);
                 try (
                     DataInputStream is = new DataInputStream(
-                        getInputStream(metaFiles.get(metaName))
+                        getInputStream(metaFile)
                     )
                 ) {
                     meta = IO.readMeta(is);
@@ -117,7 +141,10 @@ public abstract class FileHandler {
                 }
             }
 
-            PuzMetaFile h = new PuzMetaFile(puzFile, meta);
+            PuzMetaFile h = new PuzMetaFile(
+                new PuzHandle(puzFile, metaFile),
+                meta
+            );
 
             if ((sourceMatch == null) || sourceMatch.equals(h.getSource())) {
                 files.add(h);
@@ -127,10 +154,15 @@ public abstract class FileHandler {
         return files.toArray(new PuzMetaFile[files.size()]);
     }
 
-    public Puzzle load(PuzMetaFile puzMeta) throws IOException {
-        return load(puzMeta.getFileHandle());
+    public Puzzle load(PuzMetaFile pm) throws IOException {
+        return load(pm.getPuzHandle());
     }
 
+    public Puzzle load(PuzHandle ph) throws IOException {
+        return load(ph.getPuzFileHandle());
+    }
+
+    // TODO: replace with loadNoMeta
     public Puzzle load(FileHandle fileHandle) throws IOException {
         FileHandle metaFile = getMetaFileHandle(fileHandle);
         try (
@@ -151,9 +183,10 @@ public abstract class FileHandler {
     }
 
     public void save(Puzzle puz, PuzMetaFile puzMeta) throws IOException {
-        save(puz, puzMeta.getFileHandle());
+        save(puz, puzMeta.getPuzHandle().getPuzFileHandle());
     }
 
+    // TODO: replace with saveCreateMeta
     public void save(Puzzle puz, FileHandle fileHandle) throws IOException {
         long incept = System.currentTimeMillis();
         FileHandle metaFile = getMetaFileHandle(fileHandle);
@@ -175,19 +208,27 @@ public abstract class FileHandler {
         renameTo(metaTemp, metaFile);
     }
 
-    public void reloadMeta(PuzMetaFile fileHandle) throws IOException {
+    public void reloadMeta(PuzMetaFile pm) throws IOException {
+        FileHandle metaHandle = pm.getPuzHandle().getMetaFileHandle();
+        if (metaHandle == null)
+            metaHandle = getMetaFileHandle(pm);
+
         try (
             DataInputStream is
                 = new DataInputStream(
-                    getInputStream(getMetaFileHandle(fileHandle))
+                    getInputStream(metaHandle)
                 )
         ) {
-            fileHandle.setMeta(IO.readMeta(is));
+            pm.setMeta(IO.readMeta(is));
         };
     }
 
     protected FileHandle getMetaFileHandle(PuzMetaFile pm) {
-        return getMetaFileHandle(pm.getFileHandle());
+        return getMetaFileHandle(pm.getPuzHandle());
+    }
+
+    protected FileHandle getMetaFileHandle(PuzHandle ph) {
+        return getMetaFileHandle(ph.getPuzFileHandle());
     }
 
     protected DirHandle getSaveTempDirectory() {
