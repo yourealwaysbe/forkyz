@@ -30,6 +30,11 @@
     <string name="online">Online</string>
     <string name="dummy_x">X</string>
     <string name="preview">Preview</string>
+    <string name="unable_to_download_from">Unable to download from\n%1$s</string>
+    <string name="puzzle_already_exists">Puzzle %1$s already exists</string>
+    <string name="error_downloading_puzzle">Error downloading puzzle %1$s</string>
+    <string name="error_parsing_puzzle">Error parsing puzzle %1$s</string>
+    <string name="puzzle_downloaded_successfully">Puzzle %1$s downloaded successfully</string>
 
     <!-- preferences -->
     <string name="storage_location">Storage Location</string>

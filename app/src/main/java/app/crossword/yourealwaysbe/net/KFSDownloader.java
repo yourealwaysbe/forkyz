@@ -59,15 +59,13 @@ public class KFSDownloader extends AbstractDownloader {
 
         String fileName = this.createFileName(date);
 
-        if (fileHandler.exists(this.downloadDirectory, fileName))
-            return null;
-
         FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, this.createFileName(date)
         );
+        if (downloadTo == null)
+            return null;
 
         FileHandle plainText = downloadToTempFile(this.getName(), date);
-
         if (plainText == null) {
             return null;
         }

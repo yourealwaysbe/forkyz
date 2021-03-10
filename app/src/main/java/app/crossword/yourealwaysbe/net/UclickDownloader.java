@@ -63,12 +63,11 @@ public class UclickDownloader extends AbstractDownloader {
 
         String fileName = this.createFileName(date);
 
-        if (fileHandler.exists(this.downloadDirectory, fileName))
-            return null;
-
         FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, this.createFileName(date)
         );
+        if (downloadTo == null)
+            return null;
 
         FileHandle plainText = downloadToTempFile(date);
 
@@ -117,6 +116,11 @@ public class UclickDownloader extends AbstractDownloader {
                 this.tempFolder,
                 "uclick-temp"+System.currentTimeMillis()+".xml"
             );
+            if (tmpFile == null) {
+                LOG.log(Level.SEVERE, "Unable to download uclick XML file.");
+                return null;
+            }
+
             URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
             AndroidVersionUtils.Factory.getInstance().downloadFile(
                 url, tmpFile, EMPTY_MAP, false, null

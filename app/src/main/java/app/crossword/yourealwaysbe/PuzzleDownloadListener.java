@@ -18,10 +18,11 @@ import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
+import app.crossword.yourealwaysbe.forkyz.R;
 import app.crossword.yourealwaysbe.net.Downloaders;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
-import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.DirHandle;
+import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 
 /**
@@ -91,13 +92,21 @@ public class PuzzleDownloadListener implements DownloadListener {
 
         if (fileHandler.exists(crosswordFolder, fileName)
                 || fileHandler.exists(archiveFolder, fileName)) {
-            sendMessage("Puzzle " + fileName + " already exists.");
-
+            sendMessage(
+                mContext.getString(R.string.puzzle_already_exists, fileName)
+            );
             return;
         }
 
         FileHandle outputFile
             = fileHandler.createFileHandle(crosswordFolder, fileName);
+
+        if (outputFile == null) {
+            sendMessage(
+                mContext.getString(R.string.error_downloading_puzzle, fileName)
+            );
+            return;
+        }
 
         try (
             InputStream in = OpenHttpConnection(new URL(url), cookies)
@@ -118,14 +127,19 @@ public class PuzzleDownloadListener implements DownloadListener {
                 = Downloaders.processDownloadedPuzzle(outputFile, meta);
 
             if (processed) {
-                sendMessage(
-                    "Puzzle " + fileName + " downloaded successfully."
-                );
+                sendMessage(mContext.getString(
+                    R.string.puzzle_downloaded_successfully,
+                    fileName
+                ));
             } else {
-                sendMessage("Error parsing puzzle " + fileName);
+                sendMessage(
+                    mContext.getString(R.string.error_parsing_puzzle, fileName)
+                );
             }
         } catch (Exception ex) {
-            sendMessage("Error downloading puzzle " + fileName);
+            sendMessage(
+                mContext.getString(R.string.error_downloading_puzzle, fileName)
+            );
         }
     }
 

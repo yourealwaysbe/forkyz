@@ -105,6 +105,9 @@ public abstract class AbstractDownloader implements Downloader {
             FileHandle f = fileHandler.createFileHandle(
                 downloadDirectory, this.createFileName(date)
             );
+            if (f == null)
+                return null;
+
             PuzzleMeta meta = new PuzzleMeta();
             meta.date = date;
             meta.source = getName();
@@ -147,14 +150,18 @@ public abstract class AbstractDownloader implements Downloader {
             "txt-tmp"+System.currentTimeMillis()+".txt"
         );
 
-        try {
-            URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
-            LOG.log(Level.INFO, fullName +" "+url.toExternalForm());
-            AndroidVersionUtils.Factory.getInstance().downloadFile(url, downloaded, EMPTY_MAP, false, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fileHandler.delete(downloaded);
-            downloaded = null;
+        if (downloaded != null) {
+            try {
+                URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
+                LOG.log(Level.INFO, fullName +" "+url.toExternalForm());
+                AndroidVersionUtils.Factory
+                    .getInstance()
+                    .downloadFile(url, downloaded, EMPTY_MAP, false, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fileHandler.delete(downloaded);
+                downloaded = null;
+            }
         }
 
         if (downloaded == null) {

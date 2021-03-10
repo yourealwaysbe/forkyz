@@ -36,9 +36,13 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             = ForkyzApplication.getInstance().getFileHandler();
         DownloadResult jpzResult = download(date, urlSuffix, headers, false);
         FileHandle jpzFile = jpzResult.getFileHandle();
+
         FileHandle puzFile = fileHandler.createFileHandle(
             downloadDirectory, this.createFileName(date)
         );
+        if (puzFile == null)
+            return null;
+
         try (
             InputStream is = fileHandler.getInputStream(jpzFile);
             DataOutputStream dos
@@ -75,6 +79,9 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             FileHandle f = fileHandler.createFileHandle(
                 downloadDirectory, this.createFileName(date)+".jpz"
             );
+            if (f == null)
+                return null;
+
             PuzzleMeta meta = new PuzzleMeta();
             meta.date = date;
             meta.source = getName();

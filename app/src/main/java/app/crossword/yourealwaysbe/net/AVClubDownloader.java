@@ -69,6 +69,8 @@ public class AVClubDownloader extends AbstractDownloader {
                 FileHandle f = fileHandler.createFileHandle(
                     downloadDirectory, this.createFileName(date)
                 );
+                if (f == null)
+                    return null;
                 try (OutputStream fos = fileHandler.getOutputStream(f)) {
                     IO.copyStream(connection.getInputStream(), fos);
                 }

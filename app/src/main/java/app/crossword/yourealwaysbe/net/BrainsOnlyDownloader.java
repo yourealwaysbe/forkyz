@@ -48,19 +48,18 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
 
         String fileName = this.createFileName(date);
 
-        if (fileHandler.exists(this.downloadDirectory, fileName)) {
+        if (fileHandler.exists(this.downloadDirectory, fileName))
             return null;
-        }
 
         FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, fileName
         );
+        if (downloadTo == null)
+            return null;
 
         FileHandle plainText = downloadToTempFile(this.getName(), date);
-
-        if (plainText == null) {
+        if (plainText == null)
             return null;
-        }
 
         try (
             InputStream is = fileHandler.getInputStream(plainText);

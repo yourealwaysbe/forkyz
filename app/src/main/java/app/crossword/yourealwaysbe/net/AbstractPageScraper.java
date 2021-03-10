@@ -48,9 +48,13 @@ public class AbstractPageScraper {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
         URL u = new URL(url);
+
         FileHandle output = fileHandler.createFileHandle(
             AbstractDownloader.getDownloadDir(), fileName
         );
+        if (output == null)
+            return null;
+
         try (OutputStream fos = fileHandler.getOutputStream(output)) {
             IO.copyStream(u.openStream(), fos);
         } catch (Exception e) {

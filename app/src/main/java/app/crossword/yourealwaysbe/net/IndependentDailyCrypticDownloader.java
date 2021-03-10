@@ -72,12 +72,11 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
 
         String fileName = this.createFileName(date);
 
-        if (fileHandler.exists(this.downloadDirectory, fileName))
-            return null;
-
         FileHandle f = fileHandler.createFileHandle(
             this.downloadDirectory, this.createFileName(date)
         );
+        if (f == null)
+            return null;
 
         try (
             InputStream is = url.openStream();

@@ -36,7 +36,6 @@ public abstract class FileHandler {
     public abstract Uri getUri(FileHandle f);
     public abstract String getName(FileHandle f);
     public abstract long getLastModified(FileHandle file);
-    public abstract FileHandle createFileHandle(DirHandle dir, String fileName);
     public abstract void delete(FileHandle fileHandle);
     public abstract void moveTo(FileHandle fileHandle, DirHandle dirHandle);
     public abstract void renameTo(FileHandle src, FileHandle dest);
@@ -47,6 +46,14 @@ public abstract class FileHandler {
     public abstract LocalDate getModifiedDate(FileHandle file);
     public abstract boolean isStorageMounted();
     public abstract boolean isStorageFull();
+
+    /**
+     * Create a new file in the directory with the given display name
+     *
+     * Return null if could not be created. E.g. if the file already
+     * exists.
+     */
+    public abstract FileHandle createFileHandle(DirHandle dir, String fileName);
 
     protected abstract FileHandle getMetaFileHandle(FileHandle puzFile);
 

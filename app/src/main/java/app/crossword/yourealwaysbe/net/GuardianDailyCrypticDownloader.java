@@ -98,6 +98,8 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             FileHandle f = fileHandler.createFileHandle(
                 downloadDirectory, fileName
             );
+            if (f == null)
+                return null;
 
             try (
                 DataOutputStream dos = new DataOutputStream(
