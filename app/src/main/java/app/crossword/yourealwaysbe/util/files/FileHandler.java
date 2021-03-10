@@ -116,6 +116,7 @@ public abstract class FileHandler {
                 puzFiles.put(fileName, f);
             } else if (fileName.endsWith(".forkyz")) {
                 metaFiles.put(fileName, f);
+            } else {
             }
         }
 
