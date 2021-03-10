@@ -169,27 +169,40 @@ public abstract class FileHandler {
         return load(pm.getPuzHandle());
     }
 
+    /**
+     * Loads puzzle with meta
+     *
+     * If the meta file of puz handle is null, loads without meta
+     */
     public Puzzle load(PuzHandle ph) throws IOException {
-        return load(ph.getPuzFileHandle());
+        FileHandle metaFile = ph.getMetaFileHandle();
+
+        if (metaFile == null)
+            return load(ph.getPuzFileHandle());
+
+        try (
+            DataInputStream pis
+                = new DataInputStream(
+                    getInputStream(ph.getPuzFileHandle())
+                );
+            DataInputStream mis
+                = new DataInputStream(
+                    getInputStream(ph.getMetaFileHandle())
+                )
+        ) {
+            return IO.load(pis, mis);
+        }
     }
 
-    // TODO: replace with loadNoMeta
+    /**
+     * Loads without any meta data
+     */
     public Puzzle load(FileHandle fileHandle) throws IOException {
-        FileHandle metaFile = getMetaFileHandle(fileHandle);
         try (
             DataInputStream fis
                 = new DataInputStream(getInputStream(fileHandle))
         ) {
-            Puzzle puz = IO.loadNative(fis);
-            if (exists(metaFile)) {
-                try (
-                    DataInputStream mis
-                        = new DataInputStream(getInputStream(metaFile))
-                ) {
-                    IO.readCustom(puz, mis);
-                }
-            }
-            return puz;
+            return IO.loadNative(fis);
         }
     }
 
