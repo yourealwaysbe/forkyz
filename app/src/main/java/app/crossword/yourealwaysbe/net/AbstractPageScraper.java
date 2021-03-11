@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -151,15 +152,15 @@ public class AbstractPageScraper {
             Map<String, String> urlsToFilenames = mapURLsToFileNames(urls);
             System.out.println("Mapped: " + urlsToFilenames.size());
 
+            Set<String> existingFiles = fileHandler.getFileNames(
+                AbstractDownloader.getStandardDownloadDir(),
+                AbstractDownloader.getStandardArchiveDir()
+            );
+
             for (String url : urls) {
                 String filename = urlsToFilenames.get(url);
 
-                boolean exists = fileHandler.exists(
-                    AbstractDownloader.getStandardDownloadDir(), filename
-                );
-                exists = exists || fileHandler.exists(
-                    AbstractDownloader.getStandardArchiveDir(), filename
-                );
+                boolean exists = existingFiles.contains(filename);
 
                 if (!exists && (scrapedFiles.size() < 3)) {
                     System.out.println("Attempting " + url + "  scraped "

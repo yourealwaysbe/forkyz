@@ -9,9 +9,11 @@ import java.io.OutputStream;
 import java.lang.Iterable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -40,7 +42,6 @@ public abstract class FileHandler {
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
     public abstract boolean exists(FileHandle file);
-    public abstract boolean exists(DirHandle dir, String fileName);
     public abstract Iterable<FileHandle> listFiles(final DirHandle dir);
     public abstract Uri getUri(DirHandle f);
     public abstract Uri getUri(FileHandle f);
@@ -163,6 +164,21 @@ public abstract class FileHandler {
         }
 
         return files.toArray(new PuzMetaFile[files.size()]);
+    }
+
+    /**
+     * Gets the set of file names in the two directories
+     *
+     * Slightly odd method, but useful in various places. dir1 and dir2
+     * are usually the crosswords and archive folders.
+     */
+    public Set<String> getFileNames(DirHandle dir1, DirHandle dir2) {
+        Set<String> fileNames = new HashSet<>();
+        for (FileHandle fh : listFiles(dir1))
+            fileNames.add(getName(fh));
+        for (FileHandle fh : listFiles(dir2))
+            fileNames.add(getName(fh));
+        return fileNames;
     }
 
     public Puzzle load(PuzMetaFile pm) throws IOException {

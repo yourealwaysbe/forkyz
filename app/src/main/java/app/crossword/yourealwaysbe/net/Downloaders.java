@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -159,17 +160,30 @@ public class Downloaders {
         }
 
         int nextNotificationId = 1;
-        for (Map.Entry<Downloader, LocalDate> puzzle : puzzlesToDownload.entrySet()) {
-            FileHandle downloaded = downloadPuzzle(puzzle.getKey(),
+        Set<String> fileNames
+            = fileHandler.getFileNames(crosswords, archive);
+
+        for (
+            Map.Entry<Downloader, LocalDate> puzzle
+                : puzzlesToDownload.entrySet()
+        ) {
+            Downloader downloader = puzzle.getKey();
+            LocalDate date = puzzle.getValue();
+
+            String fileName = downloader.createFileName(date);
+
+            if (downloader.alwaysRun() || !fileNames.contains(fileName)) {
+                FileHandle downloaded = downloadPuzzle(
+                    downloader,
                     puzzle.getValue(),
                     not,
                     nextNotificationId++,
-                    crosswords,
-                    archive);
-            if (downloaded != null) {
-                somethingDownloaded = true;
+                    crosswords
+                );
+                if (downloaded != null) {
+                    somethingDownloaded = true;
+                }
             }
-
         }
 
         if (this.notificationManager != null) {
@@ -186,8 +200,7 @@ public class Downloaders {
         LocalDate date,
         NotificationCompat.Builder not,
         int notificationId,
-        DirHandle crosswords,
-        DirHandle archive
+        DirHandle crosswords
     ) {
         FileHandler fileHandler
             = ForkyzApplication.getInstance().getFileHandler();
@@ -201,17 +214,6 @@ public class Downloaders {
             PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 
             not.setContentText(contentText).setContentIntent(contentIntent);
-
-            boolean exists = fileHandler.exists(
-                crosswords, d.createFileName(date)
-            );
-            exists = exists || fileHandler.exists(
-                archive, d.createFileName(date)
-            );
-
-            if (!d.alwaysRun() && exists) {
-                return null;
-            }
 
             if (!this.supressMessages && this.notificationManager != null) {
                 this.notificationManager.notify(0, not.build());

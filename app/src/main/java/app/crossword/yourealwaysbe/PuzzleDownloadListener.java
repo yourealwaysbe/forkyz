@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDate;
+import java.util.Set;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -90,8 +91,10 @@ public class PuzzleDownloadListener implements DownloadListener {
             fileName = fileName + ".puz";
         }
 
-        if (fileHandler.exists(crosswordFolder, fileName)
-                || fileHandler.exists(archiveFolder, fileName)) {
+        Set<String> existingFiles
+            = fileHandler.getFileNames(crosswordFolder, archiveFolder);
+
+        if (existingFiles.contains(fileName)) {
             sendMessage(
                 mContext.getString(R.string.puzzle_already_exists, fileName)
             );
