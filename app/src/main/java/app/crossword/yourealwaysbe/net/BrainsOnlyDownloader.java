@@ -48,9 +48,6 @@ public class BrainsOnlyDownloader extends AbstractDownloader {
 
         String fileName = this.createFileName(date);
 
-        if (fileHandler.exists(this.downloadDirectory, fileName))
-            return null;
-
         FileHandle downloadTo = fileHandler.createFileHandle(
             this.downloadDirectory, fileName
         );

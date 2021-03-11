@@ -80,7 +80,10 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
 
             String fileName = createFileName(date);
 
-            if (fileHandler.exists(downloadDirectory, fileName))
+            FileHandle f = fileHandler.createFileHandle(
+                downloadDirectory, fileName
+            );
+            if (f == null)
                 return null;
 
             URL url = new URL(this.baseUrl + urlSuffix);
@@ -94,12 +97,6 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             }
 
             Puzzle puz = readPuzzleFromJSON(cw, date);
-
-            FileHandle f = fileHandler.createFileHandle(
-                downloadDirectory, fileName
-            );
-            if (f == null)
-                return null;
 
             try (
                 DataOutputStream dos = new DataOutputStream(
