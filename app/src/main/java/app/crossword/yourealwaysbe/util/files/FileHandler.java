@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Iterable;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,7 +56,6 @@ public abstract class FileHandler {
         throws IOException;
     public abstract InputStream getInputStream(FileHandle fileHandle)
         throws IOException;
-    public abstract LocalDate getModifiedDate(FileHandle file);
     public abstract boolean isStorageMounted();
     public abstract boolean isStorageFull();
 
@@ -65,8 +66,6 @@ public abstract class FileHandler {
      * exists.
      */
     public abstract FileHandle createFileHandle(DirHandle dir, String fileName);
-
-    protected abstract FileHandle getMetaFileHandle(FileHandle puzFile);
 
     public boolean exists(PuzMetaFile pm) {
         return exists(pm.getPuzHandle());
@@ -328,6 +327,12 @@ public abstract class FileHandler {
             metaHandle = getFileHandle(Uri.parse(metaUri));
 
         return new PuzHandle(dirHandle, puzHandle, metaHandle);
+    }
+
+    public LocalDate getModifiedDate(FileHandle file) {
+        return Instant.ofEpochMilli(getLastModified(file))
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
     }
 
     protected DirHandle getSaveTempDirectory() {
