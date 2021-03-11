@@ -47,7 +47,7 @@ public class LATimesDownloader extends AbstractJPZDownloader {
     @Override
     protected String createUrlSuffix(LocalDate date) {
         String val = "la";
-        if(date.isBefore(LocalDate.of(114, 0, 27))){
+        if(date.isBefore(LocalDate.of(2014, 1, 27))){
             val = "puzzle_";
         }
         return val + (date.getYear() % 100)
