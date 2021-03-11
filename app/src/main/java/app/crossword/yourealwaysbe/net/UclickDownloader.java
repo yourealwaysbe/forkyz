@@ -98,7 +98,10 @@ public class UclickDownloader extends AbstractDownloader {
             downloadTo = null;
         }
 
-        return new Downloader.DownloadResult(downloadTo);
+        if (downloadTo == null)
+            return null;
+        else
+            return new Downloader.DownloadResult(downloadTo);
     }
 
     @Override

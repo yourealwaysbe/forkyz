@@ -40,7 +40,8 @@ public abstract class AbstractDownloader implements Downloader {
     protected static final Map<String, String> EMPTY_MAP = Collections.emptyMap();
     protected DirHandle downloadDirectory;
     protected String baseUrl;
-    protected final AndroidVersionUtils utils = AndroidVersionUtils.Factory.getInstance();
+    protected final AndroidVersionUtils utils
+        = AndroidVersionUtils.Factory.getInstance();
     private String downloaderName;
     protected DirHandle tempFolder;
     protected LocalDate goodThrough = LocalDate.now();
@@ -91,7 +92,6 @@ public abstract class AbstractDownloader implements Downloader {
         String urlSuffix,
         Map<String, String> headers
     ){
-        System.out.println("DL From ASD");
         return download(date, urlSuffix, headers, true);
     }
 
@@ -124,13 +124,12 @@ public abstract class AbstractDownloader implements Downloader {
             if( canDefer ){
                 if (utils.downloadFile(url, f, headers, true, this.getName())) {
                     utils.removeMetas(fileUri);
-
                     return new Downloader.DownloadResult(f);
                 } else {
                     return Downloader.DownloadResult.DEFERRED_FILE;
                 }
             } else {
-                AndroidVersionUtils.Factory.getInstance().downloadFile(url, f, headers, true, this.getName());
+                utils.downloadFile(url, f, headers, true, this.getName());
                 return new Downloader.DownloadResult(f);
             }
         } catch (IOException e) {
@@ -159,9 +158,7 @@ public abstract class AbstractDownloader implements Downloader {
             try {
                 URL url = new URL(this.baseUrl + this.createUrlSuffix(date));
                 LOG.log(Level.INFO, fullName +" "+url.toExternalForm());
-                AndroidVersionUtils.Factory
-                    .getInstance()
-                    .downloadFile(url, downloaded, EMPTY_MAP, false, null);
+                utils.downloadFile(url, downloaded, EMPTY_MAP, false, null);
             } catch (Exception e) {
                 e.printStackTrace();
                 fileHandler.delete(downloaded);

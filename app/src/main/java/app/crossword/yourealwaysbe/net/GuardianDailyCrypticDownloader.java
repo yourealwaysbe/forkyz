@@ -108,15 +108,8 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             ) {
                 puz.setVersion(IO.VERSION_STRING);
                 IO.saveNative(puz, dos);
+                return new Downloader.DownloadResult(f);
             }
-
-            PuzzleMeta meta = new PuzzleMeta();
-            meta.date = puz.getDate();
-            meta.source = getName();
-            meta.sourceUrl = url.toString();
-            meta.updatable = true;
-
-            utils.storeMetas(fileHandler.getUri(f), meta, downloadDirectory);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {

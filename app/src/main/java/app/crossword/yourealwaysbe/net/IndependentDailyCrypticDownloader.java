@@ -90,17 +90,9 @@ public class IndependentDailyCrypticDownloader extends AbstractDownloader {
 
             if (!retVal) {
                 LOG.log(Level.SEVERE,
-                        "Unable to convert uclick XML puzzle into Across Lite format.");
+                        "Unable to convert Independent XML puzzle into Across Lite format.");
             } else {
-                PuzzleMeta meta = new PuzzleMeta();
-                meta.date = date;
-                meta.source = getName();
-                meta.sourceUrl = url.toString();
-                meta.updatable = true;
-
-                utils.storeMetas(
-                    fileHandler.getUri(f), meta, this.downloadDirectory
-                );
+                return new Downloader.DownloadResult(f);
             }
         } catch (IOException ioe) {
             LOG.log(Level.SEVERE, "Exception converting Independent XML puzzle into Across Lite format.", ioe);
