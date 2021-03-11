@@ -392,7 +392,16 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     @Override
     protected void onResume() {
         super.onResume();
-        if (this.currentAdapter == null) {
+
+        // if we last opened a puzzle with no meta file there could we
+        // be one now (searching for it is a potentially expensive
+        // operation that should be run on another thread... (in the
+        // SAF)
+        boolean possibleNewMeta =
+            lastOpenedPuzMeta != null
+                && lastOpenedPuzMeta.getPuzHandle().getMetaFileHandle() == null;
+
+        if (this.currentAdapter == null || possibleNewMeta) {
             this.render();
         } else {
             FileHandler fileHandler = getFileHandler();

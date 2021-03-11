@@ -277,19 +277,21 @@ public abstract class FileHandler {
         save(puz, new PuzHandle(puzDir, puzFile, null));
     }
 
+    /**
+     * Reloads meta file if the puz handle has one set
+     */
     public void reloadMeta(PuzMetaFile pm) throws IOException {
         FileHandle metaHandle = pm.getPuzHandle().getMetaFileHandle();
-        if (metaHandle == null)
-            metaHandle = getMetaFileHandle(pm);
-
-        try (
-            DataInputStream is
-                = new DataInputStream(
-                    getInputStream(metaHandle)
-                )
-        ) {
-            pm.setMeta(IO.readMeta(is));
-        };
+        if (metaHandle != null) {
+            try (
+                DataInputStream is
+                    = new DataInputStream(
+                        getInputStream(metaHandle)
+                    )
+            ) {
+                pm.setMeta(IO.readMeta(is));
+            };
+        }
     }
 
     /**
@@ -326,14 +328,6 @@ public abstract class FileHandler {
             metaHandle = getFileHandle(Uri.parse(metaUri));
 
         return new PuzHandle(dirHandle, puzHandle, metaHandle);
-    }
-
-    protected FileHandle getMetaFileHandle(PuzMetaFile pm) {
-        return getMetaFileHandle(pm.getPuzHandle());
-    }
-
-    protected FileHandle getMetaFileHandle(PuzHandle ph) {
-        return getMetaFileHandle(ph.getPuzFileHandle());
     }
 
     protected DirHandle getSaveTempDirectory() {
