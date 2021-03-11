@@ -89,12 +89,8 @@ public class GuardianDailyCrypticDownloader extends AbstractDownloader {
             URL url = new URL(this.baseUrl + urlSuffix);
             JSONObject cw = getCrosswordJSON(url);
 
-            if (cw == null) {
-                return (canDefer
-                    ?  Downloader.DownloadResult.DEFERRED_FILE
-                    : null
-                );
-            }
+            if (cw == null)
+                return null;
 
             Puzzle puz = readPuzzleFromJSON(cw, date);
 
