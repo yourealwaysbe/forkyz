@@ -121,16 +121,15 @@ public abstract class AbstractDownloader implements Downloader {
 
             Uri fileUri = fileHandler.getUri(f);
             utils.storeMetas(fileUri, meta, downloadDirectory);
-            if( canDefer ){
-                if (utils.downloadFile(url, f, headers, true, this.getName())) {
-                    utils.removeMetas(fileUri);
-                    return new Downloader.DownloadResult(f);
-                } else {
-                    return Downloader.DownloadResult.DEFERRED_FILE;
-                }
-            } else {
-                utils.downloadFile(url, f, headers, true, this.getName());
+
+            if (utils.downloadFile(url, f, headers, true, this.getName())) {
+                utils.removeMetas(fileUri);
                 return new Downloader.DownloadResult(f);
+            } else if (canDefer) {
+                return Downloader.DownloadResult.DEFERRED_FILE;
+            } else {
+                utils.removeMetas(fileUri);
+                return null;
             }
         } catch (IOException e) {
             e.printStackTrace();

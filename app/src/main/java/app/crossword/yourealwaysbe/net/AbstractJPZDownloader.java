@@ -88,18 +88,17 @@ public abstract class AbstractJPZDownloader extends AbstractDownloader {
             meta.sourceUrl = url.toString();
             meta.updatable = false;
 
+            Uri fileUri = fileHandler.getUri(f);
             utils.storeMetas(fileHandler.getUri(f), meta, downloadDirectory);
-            if( canDefer ){
-                if (utils.downloadFile(url, f, headers, true, this.getName())) {
-                    utils.removeMetas(fileHandler.getUri(f));
 
-                    return new Downloader.DownloadResult(f);
-                } else {
-                    return Downloader.DownloadResult.DEFERRED_FILE;
-                }
-            } else {
-                AndroidVersionUtils.Factory.getInstance().downloadFile(url, f, headers, true, this.getName());
+            if (utils.downloadFile(url, f, headers, true, this.getName())) {
+                utils.removeMetas(fileHandler.getUri(f));
                 return new Downloader.DownloadResult(f);
+            } else if (canDefer) {
+                return Downloader.DownloadResult.DEFERRED_FILE;
+            } else {
+                utils.removeMetas(fileUri);
+                return null;
             }
         } catch (IOException e) {
             e.printStackTrace();
