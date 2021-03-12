@@ -583,7 +583,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
         if (dirExists) {
             final View progressBar
-                = BrowseActivity.this.findViewById( R.id.please_wait_notice);
+                = BrowseActivity.this.findViewById(R.id.please_wait_notice);
             progressBar.setVisibility(View.VISIBLE);
 
             Runnable r = new Runnable() {
