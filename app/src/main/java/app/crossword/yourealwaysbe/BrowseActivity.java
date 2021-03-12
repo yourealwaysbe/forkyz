@@ -76,12 +76,10 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private SeparatedRecyclerViewAdapter<FileViewHolder> currentAdapter = null;
     private DirHandle archiveFolder = getFileHandler().getArchiveDirectory();
     private DirHandle crosswordsFolder = getFileHandler().getCrosswordsDirectory();
-    private PuzMetaFile lastOpenedPuzMeta = null;
     private Handler handler = new Handler(Looper.getMainLooper());
     private RecyclerView puzzleList;
     private ListView sources;
     private NotificationManager nm;
-    private View lastOpenedView = null;
     private boolean viewArchive;
     private MenuItem gamesItem;
     private boolean signedIn;
@@ -392,52 +390,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     @Override
     protected void onResume() {
         super.onResume();
-
-        // if we last opened a puzzle with no meta file there could we
-        // be one now (searching for it is a potentially expensive
-        // operation that should be run on another thread... (in the
-        // SAF)
-        boolean possibleNewMeta =
-            lastOpenedPuzMeta != null
-                && lastOpenedPuzMeta.getPuzHandle().getMetaFileHandle() == null;
-
-        if (this.currentAdapter == null || possibleNewMeta) {
-            this.render();
-        } else {
-            FileHandler fileHandler = getFileHandler();
-
-            if (lastOpenedPuzMeta != null
-                    && fileHandler.exists(lastOpenedPuzMeta)) {
-                try {
-                    fileHandler.reloadMeta(lastOpenedPuzMeta);
-
-                    CircleProgressBar bar = (CircleProgressBar) lastOpenedView.findViewById(R.id.puzzle_progress);
-
-                    if (lastOpenedPuzMeta.isUpdatable()) {
-                        bar.setPercentFilled(-1);
-                    } else {
-                        bar.setPercentFilled(lastOpenedPuzMeta.getFilled());
-                        bar.setComplete(lastOpenedPuzMeta.getComplete() == 100);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    lastOpenedPuzMeta = null;
-                }
-            } else {
-                lastOpenedPuzMeta = null;
-            }
-        }
-
-
-
-        // A background update will commonly happen when the user turns on the preference for the
-        // first time, so check here to ensure the UI is re-rendered when they exit the settings
-        // dialog.
-        if (utils.checkBackgroundDownload(prefs, hasWritePermissions)) {
-            render();
-        }
-
-        this.checkDownload();
+        render();
+        checkDownload();
     }
 
     private SeparatedRecyclerViewAdapter<FileViewHolder> buildList(DirHandle directory, Accessor accessor) {
@@ -670,9 +624,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    lastOpenedView = v;
-                    lastOpenedPuzMeta= ((PuzMetaFile) v.getTag());
-                    if (lastOpenedPuzMeta == null) {
+                    PuzMetaFile selectedPuzMeta = ((PuzMetaFile) v.getTag());
+                    if (selectedPuzMeta == null) {
                         return;
                     }
 
@@ -683,7 +636,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                         BrowseActivity.this, PlayActivity.class
                     );
                     fileHandler.writePuzHandleToIntent(
-                        lastOpenedPuzMeta.getPuzHandle(), i
+                        selectedPuzMeta.getPuzHandle(), i
                     );
                     startActivity(i);
                 }

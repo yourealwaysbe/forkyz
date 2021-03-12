@@ -277,23 +277,6 @@ public abstract class FileHandler {
     }
 
     /**
-     * Reloads meta file if the puz handle has one set
-     */
-    public void reloadMeta(PuzMetaFile pm) throws IOException {
-        FileHandle metaHandle = pm.getPuzHandle().getMetaFileHandle();
-        if (metaHandle != null) {
-            try (
-                DataInputStream is
-                    = new DataInputStream(
-                        getInputStream(metaHandle)
-                    )
-            ) {
-                pm.setMeta(IO.readMeta(is));
-            };
-        }
-    }
-
-    /**
      * Write the handle to an intent
      *
      * Useful for starting activities
