@@ -153,7 +153,13 @@ public class PlayActivity extends PuzzleActivity
         Puzzle puz = null;
 
         try {
-            puzHandle = fileHandler.readPuzHandleFromIntent(this.getIntent());
+            puzHandle = ForkyzApplication.getInstance().getPuzHandle();
+
+            if (puzHandle == null) {
+                LOG.info("PlayActivity started but no Puzzle selected, finishing.");
+                finish();
+            }
+
             puz = fileHandler.load(puzHandle);
 
             if (puz == null || puz.getBoxes() == null) {

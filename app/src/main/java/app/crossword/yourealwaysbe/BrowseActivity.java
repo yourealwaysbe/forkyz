@@ -45,6 +45,7 @@ import app.crossword.yourealwaysbe.util.files.Accessor;
 import app.crossword.yourealwaysbe.util.files.DirHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
+import app.crossword.yourealwaysbe.util.files.PuzHandle;
 import app.crossword.yourealwaysbe.util.files.PuzMetaFile;
 import app.crossword.yourealwaysbe.view.CircleProgressBar;
 import app.crossword.yourealwaysbe.view.StoragePermissionDialog;
@@ -73,7 +74,8 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     private static final long DAY = 24L * 60L * 60L * 1000L;
     private static final Logger LOGGER = Logger.getLogger(BrowseActivity.class.getCanonicalName());
     private Accessor accessor = Accessor.DATE_DESC;
-    private SeparatedRecyclerViewAdapter<FileViewHolder> currentAdapter = null;
+    private SeparatedRecyclerViewAdapter<FileViewHolder, FileAdapter>
+        currentAdapter = null;
     private DirHandle archiveFolder = getFileHandler().getArchiveDirectory();
     private DirHandle crosswordsFolder = getFileHandler().getCrosswordsDirectory();
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -390,17 +392,78 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
     @Override
     protected void onResume() {
         super.onResume();
-        render();
+
+        // A background update will commonly happen when the user turns
+        // on the preference for the first time, so check here to ensure
+        // the UI is re-rendered when they exit the settings dialog.
+        if (currentAdapter == null
+                || utils.checkBackgroundDownload(prefs, hasWritePermissions)) {
+            render();
+        } else {
+            refreshLastAccessedPuzzle();
+        }
+
         checkDownload();
     }
 
-    private SeparatedRecyclerViewAdapter<FileViewHolder> buildList(DirHandle directory, Accessor accessor) {
+    private void refreshLastAccessedPuzzle() {
+        final FileHandler fileHandler = getFileHandler();
+        final PuzHandle lastAccessed
+            = ForkyzApplication.getInstance().getPuzHandle();
+
+        new Thread(new Runnable() {
+            public void run() {
+                for (SeparatedRecyclerViewAdapter<FileViewHolder, FileAdapter>.IndexedSectionAdapter indexedSectionAdapter : currentAdapter.getIndexedSectionAdapters()) {
+                    int startPos = indexedSectionAdapter.getIndex();
+                    FileAdapter adapter
+                        = indexedSectionAdapter.getSectionAdapter();
+
+                    FileHandle lastAccessedPuzFile
+                        = lastAccessed.getPuzFileHandle();
+
+                    for (int pos = 0; pos < adapter.getItemCount(); pos++) {
+                        PuzMetaFile posMeta = adapter.getPuzMetaFile(pos);
+
+                        FileHandle posPuzFile
+                            = posMeta.getPuzHandle().getPuzFileHandle();
+
+                        if (posPuzFile.equals(lastAccessedPuzFile)) {
+                            final int updateSectionPos = pos;
+                            final int updateListPos = startPos + pos;
+                            // file access off main thread
+                            PuzMetaFile newPuzMeta
+                                = fileHandler.loadPuzMetaFile(
+                                    lastAccessed
+                                );
+                            adapter.setPuzMetaFile(
+                                updateSectionPos, newPuzMeta
+                            );
+                            handler.post(new Runnable() {
+                                public void run() {
+                                    currentAdapter.notifyItemChanged(
+                                        updateListPos
+                                    );
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private SeparatedRecyclerViewAdapter<FileViewHolder, FileAdapter>
+    buildList(DirHandle directory, Accessor accessor) {
+
         long incept = System.currentTimeMillis();
         FileHandler fileHandler = getFileHandler();
 
         if (!fileHandler.exists(directory)) {
             showSDCardHelp();
-            return new SeparatedRecyclerViewAdapter<FileViewHolder>(
+            return new SeparatedRecyclerViewAdapter<
+                FileViewHolder, FileAdapter
+            >(
                 R.layout.puzzle_list_header,
                 FileViewHolder.class
             );
@@ -424,7 +487,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
             e.printStackTrace();
         }
 
-        SeparatedRecyclerViewAdapter<FileViewHolder> adapter
+        SeparatedRecyclerViewAdapter<FileViewHolder, FileAdapter> adapter
             = new SeparatedRecyclerViewAdapter<>(
                 R.layout.puzzle_list_header,
                 FileViewHolder.class
@@ -635,9 +698,11 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                     Intent i = new Intent(
                         BrowseActivity.this, PlayActivity.class
                     );
-                    fileHandler.writePuzHandleToIntent(
-                        selectedPuzMeta.getPuzHandle(), i
+
+                    ForkyzApplication.getInstance().setBoard(
+                        null, selectedPuzMeta.getPuzHandle()
                     );
+
                     startActivity(i);
                 }
             }, 450);
@@ -690,6 +755,14 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
 
         public FileAdapter(ArrayList<PuzMetaFile> objects) {
             this.objects = objects;
+        }
+
+        public PuzMetaFile getPuzMetaFile(int index) {
+            return objects.get(index);
+        }
+
+        public void setPuzMetaFile(int index, PuzMetaFile puzMeta) {
+            objects.set(index, puzMeta);
         }
 
         @Override
