@@ -430,7 +430,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                         if (posPuzFile.equals(lastAccessedPuzFile)) {
                             final int updateSectionPos = pos;
                             final int updateListPos = startPos + pos;
-                            // file access off main thread
                             PuzMetaFile newPuzMeta
                                 = fileHandler.loadPuzMetaFile(
                                     lastAccessed
