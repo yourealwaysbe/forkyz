@@ -7,38 +7,43 @@
 >
 
     <LinearLayout
-        android:id="@+id/please_wait_notice"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:visibility="gone"
-    >
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-        />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/please_wait"
-            android:textSize="20sp"
-        />
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/puzzleList"
-        android:layout_below="@id/please_wait_notice"
-        android:layout_alignParentLeft="true"
-        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-    />
+        android:orientation="vertical"
+    >
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/puzzleList"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+        />
+
+        <LinearLayout
+            android:id="@+id/please_wait_notice"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+        >
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+            />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/please_wait"
+                android:textSize="20sp"
+            />
+
+        </LinearLayout>
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/button_floating_action"
