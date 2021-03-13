@@ -411,6 +411,9 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         final PuzHandle lastAccessed
             = ForkyzApplication.getInstance().getPuzHandle();
 
+        if (lastAccessed == null)
+            return;
+
         new Thread(new Runnable() {
             public void run() {
                 for (SeparatedRecyclerViewAdapter<FileViewHolder, FileAdapter>.IndexedSectionAdapter indexedSectionAdapter : currentAdapter.getIndexedSectionAdapters()) {
