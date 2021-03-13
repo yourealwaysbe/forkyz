@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.storage.StorageManager;
 
 /**
@@ -32,15 +33,22 @@ public class FileHandlerInternal extends FileHandlerJavaFile {
     @Override
     public boolean isStorageFull() {
         try {
-            StorageManager storageManager
-                = context
-                    .getApplicationContext()
-                    .getSystemService(StorageManager.class);
-            UUID appSpecificInternalDirUuid
-                = storageManager.getUuidForPath(context.getFilesDir());
-            long availableBytes =
-                    storageManager.getAllocatableBytes(appSpecificInternalDirUuid);
-            return availableBytes < 1024L * 1024L;
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+                StorageManager storageManager
+                    = context
+                        .getApplicationContext()
+                        .getSystemService(StorageManager.class);
+                UUID appSpecificInternalDirUuid
+                    = storageManager.getUuidForPath(context.getFilesDir());
+                long availableBytes =
+                    storageManager.getAllocatableBytes(
+                        appSpecificInternalDirUuid
+                    );
+                return availableBytes < 1024L * 1024L;
+            } else {
+                File files = context.getFilesDir();
+                return files.getFreeSpace() < 1024L * 1024L;
+            }
         } catch (IOException e) {
             // we don't know it's not full...
             return false;
