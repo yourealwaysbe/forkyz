@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Iterable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -135,41 +136,37 @@ public class FileHandlerSAF extends FileHandler {
                 dirTreeUri, dirTreeId
             );
 
-        Cursor cursor = resolver.query(
-            childrenUri,
-            new String[] {
-                Document.COLUMN_DOCUMENT_ID,
-                Document.COLUMN_DISPLAY_NAME,
-                Document.COLUMN_LAST_MODIFIED,
-            },
-            null, null, null
-        );
+        ArrayList<FileHandle> files = new ArrayList<>();
 
-        cursor.moveToFirst();
+        try (
+            Cursor cursor = resolver.query(
+                childrenUri,
+                new String[] {
+                    Document.COLUMN_DOCUMENT_ID,
+                    Document.COLUMN_DISPLAY_NAME,
+                    Document.COLUMN_LAST_MODIFIED,
+                    Document.COLUMN_MIME_TYPE
+                },
+                null, null, null
+            )
+        ) {
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(0);
+                String name = cursor.getString(1);
+                long modified = cursor.getLong(2);
+                String mimeType = cursor.getString(3);
 
-        return new Iterable<FileHandle>() {
-            public Iterator<FileHandle> iterator() {
-                return new Iterator<FileHandle>() {
-                    public boolean hasNext() {
-                        return !cursor.isAfterLast();
-                    }
+                if (!Document.MIME_TYPE_DIR.equals(mimeType)) {
+                    Uri uri = DocumentsContract.buildDocumentUriUsingTree(
+                        dirUri, id
+                    );
 
-                    public FileHandle next() {
-                        String id = cursor.getString(0);
-                        String name = cursor.getString(1);
-                        long modified = cursor.getLong(2);
-
-                        Uri uri = DocumentsContract.buildDocumentUriUsingTree(
-                            dirUri, id
-                        );
-
-                        cursor.moveToNext();
-
-                        return new FileHandle(uri, new Meta(name, modified));
-                    }
-                };
+                    files.add(new FileHandle(uri, new Meta(name, modified)));
+                }
             }
-        };
+        }
+
+        return files;
     }
 
     @Override
@@ -340,32 +337,34 @@ public class FileHandlerSAF extends FileHandler {
                     rootUri, dirId
                 );
 
-            Cursor cursor = resolver.query(
-                childrenUri,
-                new String[] {
-                    Document.COLUMN_DISPLAY_NAME,
-                    Document.COLUMN_MIME_TYPE,
-                    Document.COLUMN_DOCUMENT_ID
-                },
-                null, null, null
-            );
+            try (
+                Cursor cursor = resolver.query(
+                    childrenUri,
+                    new String[] {
+                        Document.COLUMN_DISPLAY_NAME,
+                        Document.COLUMN_MIME_TYPE,
+                        Document.COLUMN_DOCUMENT_ID
+                    },
+                    null, null, null
+                )
+            ) {
+                while (cursor.moveToNext()) {
+                    String name = cursor.getString(0);
+                    String mimeType = cursor.getString(1);
+                    String id = cursor.getString(2);
 
-            while (cursor.moveToNext()) {
-                String name = cursor.getString(0);
-                String mimeType = cursor.getString(1);
-                String id = cursor.getString(2);
-
-                if (Document.MIME_TYPE_DIR.equals(mimeType)) {
-                    if (ARCHIVE_NAME.equals(name)) {
-                        archiveFolderUri
-                            = DocumentsContract.buildDocumentUriUsingTree(
-                                rootUri, id
-                            );
-                    } else if (TEMP_NAME.equals(name)) {
-                        tempFolderUri
-                            = DocumentsContract.buildDocumentUriUsingTree(
-                                rootUri, id
-                            );
+                    if (Document.MIME_TYPE_DIR.equals(mimeType)) {
+                        if (ARCHIVE_NAME.equals(name)) {
+                            archiveFolderUri
+                                = DocumentsContract.buildDocumentUriUsingTree(
+                                    rootUri, id
+                                );
+                        } else if (TEMP_NAME.equals(name)) {
+                            tempFolderUri
+                                = DocumentsContract.buildDocumentUriUsingTree(
+                                    rootUri, id
+                                );
+                        }
                     }
                 }
             }
@@ -486,31 +485,36 @@ public class FileHandlerSAF extends FileHandler {
     }
 
     private static boolean exists(ContentResolver resolver, Uri uri) {
-        Cursor c = resolver.query(
-            uri,
-            new String[] {
-                Document.COLUMN_DOCUMENT_ID
-            },
-            null, null, null
-        );
-        return c.getCount() > 0;
+        try (
+            Cursor c = resolver.query(
+                uri,
+                new String[] {
+                    Document.COLUMN_DOCUMENT_ID
+                },
+                null, null, null
+            )
+        ) {
+            return c.getCount() > 0;
+        }
     }
 
     private Meta getMetaFromUri(Uri uri) {
-        Cursor c = context.getContentResolver().query(
-            uri,
-            new String[] {
-                Document.COLUMN_DISPLAY_NAME,
-                Document.COLUMN_LAST_MODIFIED
-            },
-            null, null, null
-        );
-
-        if (c.getCount() > 0) {
-            c.moveToNext();
-            return new Meta(c.getString(0), c.getLong(1));
-        } else {
-            return null;
+        try (
+            Cursor c = context.getContentResolver().query(
+                uri,
+                new String[] {
+                    Document.COLUMN_DISPLAY_NAME,
+                    Document.COLUMN_LAST_MODIFIED
+                },
+                null, null, null
+            )
+        ) {
+            if (c.getCount() > 0) {
+                c.moveToNext();
+                return new Meta(c.getString(0), c.getLong(1));
+            } else {
+                return null;
+            }
         }
     }
 }
