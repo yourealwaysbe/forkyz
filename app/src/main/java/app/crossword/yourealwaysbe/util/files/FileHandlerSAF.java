@@ -158,17 +158,17 @@ public class FileHandlerSAF extends FileHandler {
         ContentResolver resolver = context.getContentResolver();
         String baseTreeId = DocumentsContract.getTreeDocumentId(baseUri);
 
-        Uri childrenUri
-            = DocumentsContract.buildChildDocumentsUriUsingTree(
-                baseUri, baseTreeId
-            );
-
         Uri crosswordsFolderUri = baseUri;
         Uri archiveFolderUri = null;
         Uri tempFolderUri = null;
 
         // first iterate over directory looking for subdirs with the
         // right name.
+
+        Uri childrenUri
+            = DocumentsContract.buildChildDocumentsUriUsingTree(
+                baseUri, baseTreeId
+            );
 
         Cursor cursor = resolver.query(
             childrenUri,
