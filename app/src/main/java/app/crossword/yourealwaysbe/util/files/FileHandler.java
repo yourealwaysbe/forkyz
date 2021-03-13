@@ -28,13 +28,6 @@ import app.crossword.yourealwaysbe.puz.PuzzleMeta;
  * Implementations provided for different file backends
  */
 public abstract class FileHandler {
-    private static final String DIR_URI
-        = "app.crossword.yourealwaysbe.util.files.PuzHandle.dirUri";
-    private static final String PUZ_URI
-        = "app.crossword.yourealwaysbe.util.files.PuzHandle.puzUri";
-    private static final String META_URI
-        = "app.crossword.yourealwaysbe.util.files.PuzHandle.metaUri";
-
     public abstract DirHandle getCrosswordsDirectory();
     public abstract DirHandle getArchiveDirectory();
     public abstract DirHandle getTempDirectory(DirHandle baseDir);
