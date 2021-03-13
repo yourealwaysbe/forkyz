@@ -56,7 +56,7 @@ public abstract class AbstractDownloader implements Downloader {
             = ForkyzApplication
                 .getInstance()
                 .getFileHandler()
-                .getTempDirectory(downloadDirectory);
+                .getTempDirectory();
     }
 
     @Override

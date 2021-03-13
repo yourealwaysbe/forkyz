@@ -30,7 +30,7 @@ import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 public abstract class FileHandler {
     public abstract DirHandle getCrosswordsDirectory();
     public abstract DirHandle getArchiveDirectory();
-    public abstract DirHandle getTempDirectory(DirHandle baseDir);
+    public abstract DirHandle getTempDirectory();
     public abstract DirHandle getDirHandle(Uri uri);
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
@@ -242,7 +242,7 @@ public abstract class FileHandler {
                 throw new IOException("Could not create meta file");
         }
 
-        DirHandle tempFolder = getSaveTempDirectory();
+        DirHandle tempFolder = getTempDirectory();
         FileHandle puzTemp = createFileHandle(tempFolder, getName(puzFile));
         FileHandle metaTemp = createFileHandle(tempFolder, getName(metaFile));
 
@@ -278,10 +278,6 @@ public abstract class FileHandler {
         return Instant.ofEpochMilli(getLastModified(file))
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
-    }
-
-    protected DirHandle getSaveTempDirectory() {
-        return getTempDirectory(getCrosswordsDirectory());
     }
 
     protected String getMetaFileName(FileHandle puzFile) {

@@ -2,13 +2,21 @@ package app.crossword.yourealwaysbe.util.files;
 
 import java.io.File;
 
-public class DirHandle {
-    private File dir;
+import android.net.Uri;
 
-    public DirHandle(File dir) {
-        this.dir = dir;
+public class DirHandle {
+    private Uri uri;
+
+    public DirHandle(Uri uri) {
+        this.uri = uri;
     }
 
-    File getFile() { return dir; }
+    public DirHandle(File file) {
+        this.uri = Uri.parse(file.toURI().toString());
+    }
+
+    File getFile() {
+        return new File(uri.getPath());
+    }
 }
 

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree;
@@ -18,6 +19,7 @@ import androidx.preference.PreferenceManager;
 import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.forkyz.R;
 import app.crossword.yourealwaysbe.service.BackgroundDownloadService;
+import app.crossword.yourealwaysbe.util.files.FileHandlerSAF;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 
 public class PreferencesFragment
@@ -146,30 +148,32 @@ public class PreferencesFragment
     }
 
     private void onNewExternalStorageSAFURI(Uri uri) {
-        SharedPreferences prefs
-            = PreferenceManager .getDefaultSharedPreferences(
-                getActivity().getApplicationContext()
+
+        boolean setupSuccess = FileHandlerSAF.initialiseSAFPrefs(
+            getActivity().getApplicationContext(), uri
+        );
+
+        if (setupSuccess) {
+            SharedPreferences prefs
+                = PreferenceManager .getDefaultSharedPreferences(
+                    getActivity().getApplicationContext()
+                );
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(
+                ForkyzApplication.STORAGE_LOC_PREF,
+                getString(R.string.external_storage_saf)
             );
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(
-            ForkyzApplication.STORAGE_LOC_PREF,
-            getString(R.string.external_storage_saf)
-        );
-        editor.putString(
-            ForkyzApplication.STORAGE_LOC_SAF_URI,
-            uri.toString()
-        );
-        editor.apply();
+            editor.apply();
 
-        final int takeFlags = (
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        );
-        getActivity()
-            .getContentResolver()
-            .takePersistableUriPermission(uri, takeFlags);
-
-        setExternalSAFURIDisplayValue();
+            setExternalSAFURIDisplayValue();
+        } else {
+            Toast t = Toast.makeText(
+                getActivity(),
+                R.string.failed_to_initialise_saf,
+                Toast.LENGTH_LONG
+            );
+            t.show();
+        }
     }
 
     private void setExternalSAFURIDisplayValue() {

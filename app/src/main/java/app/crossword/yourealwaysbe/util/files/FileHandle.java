@@ -10,27 +10,31 @@ import app.crossword.yourealwaysbe.io.IO;
 import app.crossword.yourealwaysbe.puz.PuzzleMeta;
 
 public class FileHandle {
-    public File file;
+    public Uri uri;
+
+    public FileHandle(Uri uri) {
+        this.uri = uri;
+    }
 
     public FileHandle(File file) {
-        this.file = file;
+        this.uri = Uri.parse(file.toURI().toString());
     }
 
     File getFile() {
-        return file;
+        return new File(uri.getPath());
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof FileHandle) {
             FileHandle other = (FileHandle) o;
-            return Objects.equals(this.file, other.file);
+            return Objects.equals(this.uri, other.uri);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(file);
+        return Objects.hashCode(uri);
     }
 }
