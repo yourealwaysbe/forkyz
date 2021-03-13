@@ -125,13 +125,17 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Archive")){
                 for(PuzMetaFile puzMeta : selected){
-                    fileHandler.moveTo(puzMeta, archiveFolder);
+                    fileHandler.moveTo(
+                        puzMeta, crosswordsFolder, archiveFolder
+                    );
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
             } else if(menuItem.getTitle().equals("Un-archive")){
                 for(PuzMetaFile puzMeta : selected){
-                    fileHandler.moveTo(puzMeta, crosswordsFolder);
+                    fileHandler.moveTo(
+                        puzMeta, archiveFolder, crosswordsFolder
+                    );
                 }
                 puzzleList.invalidate();
                 actionMode.finish();
@@ -281,9 +285,13 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
                     fileHandler.delete(puzMeta);
                 } else {
                     if (viewArchive) {
-                        fileHandler.moveTo(puzMeta, crosswordsFolder);
+                        fileHandler.moveTo(
+                            puzMeta, archiveFolder, crosswordsFolder
+                        );
                     } else {
-                        fileHandler.moveTo(puzMeta, archiveFolder);
+                        fileHandler.moveTo(
+                            puzMeta, crosswordsFolder, archiveFolder
+                        );
                     }
                 }
                 currentAdapter.onItemDismiss(viewHolder.getAdapterPosition());
@@ -462,7 +470,6 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         FileHandler fileHandler = getFileHandler();
 
         if (!fileHandler.exists(directory)) {
-            showSDCardHelp();
             return new SeparatedRecyclerViewAdapter<
                 FileViewHolder, FileAdapter
             >(
@@ -580,7 +587,7 @@ public class BrowseActivity extends ForkyzActivity implements RecyclerItemClickL
         }
 
         for (PuzMetaFile pm : toArchive) {
-            fileHandler.moveTo(pm, this.archiveFolder);
+            fileHandler.moveTo(pm, this.crosswordsFolder, this.archiveFolder);
         }
 
         render();

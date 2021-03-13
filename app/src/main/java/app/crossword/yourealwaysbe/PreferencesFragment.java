@@ -118,8 +118,9 @@ public class PreferencesFragment
      *
      * If they selected external storage (Storage Access Framework),
      * then they may be prompted to select a directory. This happens if
-     * they have not already set the directory up, or they are
-     * reselecting the same option, suggesting they want to change it.
+     * they have not already set the directory up, they are
+     * reselecting the same option, suggesting they want to change it,
+     * or there is a problem with the current one.
      *
      * @return true if change should be committed to prefs
      */
@@ -132,14 +133,24 @@ public class PreferencesFragment
         String storageLocation
             = prefs.getString(ForkyzApplication.STORAGE_LOC_PREF, null);
         String storageLocationSAFURI
-            = prefs.getString(ForkyzApplication.STORAGE_LOC_SAF_URI, null);
+            = prefs.getString(FileHandlerSAF.SAF_ROOT_URI_PREF, null);
 
         boolean selectURI
             = newValue.equals(getString(R.string.external_storage_saf))
                 && (newValue.equals(storageLocation)
-                    || storageLocationSAFURI == null);
+                    || storageLocationSAFURI == null
+                    || FileHandlerSAF.readHandlerFromPrefs(
+                            getActivity().getApplicationContext()
+                        ) == null
+                );
 
         if (selectURI) {
+            Toast t = Toast.makeText(
+                getActivity(),
+                R.string.storage_select_saf_info,
+                Toast.LENGTH_LONG
+            );
+            t.show();
             getSAFURI.launch(null);
             return false;
         } else {
@@ -151,7 +162,7 @@ public class PreferencesFragment
 
         boolean setupSuccess = FileHandlerSAF.initialiseSAFPrefs(
             getActivity().getApplicationContext(), uri
-        );
+        ) != null;
 
         if (setupSuccess) {
             SharedPreferences prefs
@@ -184,7 +195,7 @@ public class PreferencesFragment
 
         String storageLocationSAFURI
             = prefs.getString(
-                ForkyzApplication.STORAGE_LOC_SAF_URI,
+                FileHandlerSAF.SAF_ROOT_URI_PREF,
                 getString(R.string.external_storage_saf_none_selected)
             );
 

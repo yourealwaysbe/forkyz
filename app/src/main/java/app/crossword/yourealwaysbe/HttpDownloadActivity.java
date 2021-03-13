@@ -106,12 +106,6 @@ public class HttpDownloadActivity extends ForkyzActivity {
 
     private void initializeDownload() {
         FileHandler fileHandler = getFileHandler();
-        if (!fileHandler.isStorageMounted() || fileHandler.isStorageFull()) {
-            showSDCardHelp();
-            finish();
-
-            return;
-        }
 
         Uri u = this.getIntent()
                     .getData();

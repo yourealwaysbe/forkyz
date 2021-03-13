@@ -31,7 +31,6 @@ public abstract class FileHandler {
     public abstract DirHandle getCrosswordsDirectory();
     public abstract DirHandle getArchiveDirectory();
     public abstract DirHandle getTempDirectory();
-    public abstract DirHandle getDirHandle(Uri uri);
     public abstract FileHandle getFileHandle(Uri uri);
     public abstract boolean exists(DirHandle dir);
     public abstract boolean exists(FileHandle file);
@@ -41,8 +40,6 @@ public abstract class FileHandler {
     public abstract String getName(FileHandle f);
     public abstract long getLastModified(FileHandle file);
     public abstract void delete(FileHandle fileHandle);
-    public abstract void moveTo(FileHandle fileHandle, DirHandle dirHandle);
-    public abstract void renameTo(FileHandle src, FileHandle dest);
     public abstract OutputStream getOutputStream(FileHandle fileHandle)
         throws IOException;
     public abstract InputStream getInputStream(FileHandle fileHandle)
@@ -57,6 +54,13 @@ public abstract class FileHandler {
      * exists.
      */
     public abstract FileHandle createFileHandle(DirHandle dir, String fileName);
+
+    /**
+     * Move from srcDir to destDir
+     */
+    public abstract void moveTo(
+        FileHandle fileHandle, DirHandle srcDirHandle, DirHandle destDirHandle
+    );
 
     public boolean exists(PuzMetaFile pm) {
         return exists(pm.getPuzHandle());
@@ -83,15 +87,19 @@ public abstract class FileHandler {
             delete(metaHandle);
     }
 
-    public void moveTo(PuzMetaFile pm, DirHandle dirHandle) {
-        moveTo(pm.getPuzHandle(), dirHandle);
+    public void moveTo(
+        PuzMetaFile pm, DirHandle srcDirHandle, DirHandle destDirHandle
+    ) {
+        moveTo(pm.getPuzHandle(), srcDirHandle, destDirHandle);
     }
 
-    public void moveTo(PuzHandle ph, DirHandle dirHandle) {
-        moveTo(ph.getPuzFileHandle(), dirHandle);
+    public void moveTo(
+        PuzHandle ph, DirHandle srcDirHandle, DirHandle destDirHandle
+    ) {
+        moveTo(ph.getPuzFileHandle(), srcDirHandle, destDirHandle);
         FileHandle metaHandle = ph.getMetaFileHandle();
         if (metaHandle != null)
-            moveTo(metaHandle, dirHandle);
+            moveTo(metaHandle, srcDirHandle, destDirHandle);
     }
 
     public PuzMetaFile[] getPuzFiles(DirHandle dir) {
@@ -234,6 +242,7 @@ public abstract class FileHandler {
 
         FileHandle puzFile = puzHandle.getPuzFileHandle();
         FileHandle metaFile = puzHandle.getMetaFileHandle();
+        DirHandle puzDir = puzHandle.getDirHandle();
 
         if (metaFile == null) {
             String metaName = getMetaFileName(puzFile);
@@ -242,21 +251,14 @@ public abstract class FileHandler {
                 throw new IOException("Could not create meta file");
         }
 
-        DirHandle tempFolder = getTempDirectory();
-        FileHandle puzTemp = createFileHandle(tempFolder, getName(puzFile));
-        FileHandle metaTemp = createFileHandle(tempFolder, getName(metaFile));
-
         try (
             DataOutputStream puzzle
-                = new DataOutputStream(getOutputStream(puzTemp));
+                = new DataOutputStream(getOutputStream(puzFile));
             DataOutputStream meta
-                = new DataOutputStream(getOutputStream(metaTemp));
+                = new DataOutputStream(getOutputStream(metaFile));
         ) {
             IO.save(puz, puzzle, meta);
         }
-
-        renameTo(puzTemp, puzFile);
-        renameTo(metaTemp, metaFile);
 
         puzHandle.setMetaFileHandle(metaFile);
     }

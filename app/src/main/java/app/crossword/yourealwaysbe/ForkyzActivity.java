@@ -21,6 +21,7 @@ import androidx.preference.PreferenceManager;
 import app.crossword.yourealwaysbe.forkyz.ForkyzApplication;
 import app.crossword.yourealwaysbe.util.NightModeHelper;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
+import app.crossword.yourealwaysbe.util.files.FileHandlerSAF;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 
 import java.lang.reflect.Field;
@@ -37,7 +38,7 @@ public class ForkyzActivity extends AppCompatActivity {
                 SharedPreferences prefs, String key
             ) {
                 if (ForkyzApplication.STORAGE_LOC_PREF.equals(key)
-                        || ForkyzApplication.STORAGE_LOC_SAF_URI.equals(key)) {
+                        || FileHandlerSAF.SAF_ROOT_URI_PREF.equals(key)) {
                     ForkyzActivity.this.finish();
                 }
             }
@@ -57,17 +58,6 @@ public class ForkyzActivity extends AppCompatActivity {
 
         final FileHandler fileHandler = getFileHandler();
 
-        if (!fileHandler.isStorageMounted()) {
-            showSDCardHelp();
-            finish();
-            return;
-        }
-
-        if (fileHandler.isStorageFull()) {
-            showSDCardFull();
-            finish();
-            return;
-        }
         doOrientation();
 
     }
@@ -100,26 +90,7 @@ public class ForkyzActivity extends AppCompatActivity {
             this.utils.restoreNightMode(this);
         }
 
-        if (!getFileHandler().isStorageMounted()) {
-            showSDCardHelp();
-            finish();
-            return;
-        }
         doOrientation();
-    }
-
-    protected void showSDCardFull() {
-        Intent i = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("file:///android_asset/sdcard-full.html"), this,
-                HTMLActivity.class);
-        this.startActivity(i);
-    }
-
-    protected void showSDCardHelp() {
-        Intent i = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("file:///android_asset/sdcard.html"), this,
-                HTMLActivity.class);
-        this.startActivity(i);
     }
 
     private void doOrientation() {

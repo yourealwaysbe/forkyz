@@ -16,6 +16,7 @@ import app.crossword.yourealwaysbe.puz.Puzzle;
 import app.crossword.yourealwaysbe.util.files.FileHandler;
 import app.crossword.yourealwaysbe.util.files.FileHandlerInternal;
 import app.crossword.yourealwaysbe.util.files.FileHandlerLegacy;
+import app.crossword.yourealwaysbe.util.files.FileHandlerSAF;
 import app.crossword.yourealwaysbe.util.files.PuzHandle;
 import app.crossword.yourealwaysbe.versions.AndroidVersionUtils;
 import app.crossword.yourealwaysbe.view.PlayboardRenderer;
@@ -30,16 +31,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import okhttp3.CookieJar;
 
 public class ForkyzApplication extends Application {
+    private static final Logger LOGGER
+        = Logger.getLogger(ForkyzApplication.class.getCanonicalName());
 
     public static final String PUZZLE_DOWNLOAD_CHANNEL_ID = "forkyz.downloads";
     public static final String STORAGE_LOC_PREF = "storageLocation";
-    public static final String STORAGE_LOC_SAF_URI = "storageLocationSAFURI";
 
     private static ForkyzApplication INSTANCE;
     private Playboard board;
@@ -56,7 +59,7 @@ public class ForkyzApplication extends Application {
                 SharedPreferences prefs, String key
             ) {
                 if (STORAGE_LOC_PREF.equals(key)
-                        || STORAGE_LOC_SAF_URI.equals(key)) {
+                        || FileHandlerSAF.SAF_ROOT_URI_PREF.equals(key)) {
                     Toast t = Toast.makeText(
                         ForkyzApplication.this,
                         R.string.storage_changed_please_restart,
@@ -190,9 +193,31 @@ public class ForkyzApplication extends Application {
                 STORAGE_LOC_PREF, getString(R.string.internal_storage)
             );
 
-        if (locPref.equals(getString(R.string.external_storage_legacy)))
+        if (locPref.equals(getString(R.string.external_storage_legacy))) {
             fileHandler = new FileHandlerLegacy();
-        else
+        } else if (locPref.equals(getString(R.string.external_storage_saf))) {
+            fileHandler = FileHandlerSAF.readHandlerFromPrefs(this);
+        } else {
             fileHandler = new FileHandlerInternal(this);
+        }
+
+        if (fileHandler == null || !fileHandler.isStorageMounted()) {
+            fileHandler = new FileHandlerInternal(this);
+            Toast t = Toast.makeText(
+                ForkyzApplication.this,
+                R.string.storage_problem_falling_back_internal,
+                Toast.LENGTH_LONG
+            );
+            t.show();
+        }
+
+        if (fileHandler.isStorageFull()) {
+            Toast t = Toast.makeText(
+                ForkyzApplication.this,
+                R.string.storage_full_warning,
+                Toast.LENGTH_LONG
+            );
+            t.show();
+        }
     }
 }
