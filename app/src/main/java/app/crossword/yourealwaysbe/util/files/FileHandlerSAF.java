@@ -40,7 +40,14 @@ public class FileHandlerSAF extends FileHandler {
     private Uri archiveFolderUri;
     private Uri tempFolderUri;
 
+    /**
+     * Construct FileHandler from context and folder URIs
+     *
+     * Context should be an application context, not an activity that
+     * may go out of date.
+     */
     public FileHandlerSAF(
+        Context context,
         Uri crosswordsFolderUri,
         Uri archiveFolderUri,
         Uri tempFolderUri
@@ -264,6 +271,24 @@ public class FileHandlerSAF extends FileHandler {
      * configured directories.)
      */
     public static FileHandlerSAF readHandlerFromPrefs(Context context) {
-        return null;
+        SharedPreferences prefs
+            = PreferenceManager.getDefaultSharedPreferences(context);
+
+        Uri crosswordsFolderUri
+            = Uri.parse(prefs.getString(SAF_CROSSWORDS_URI_PREF, null));
+        Uri archiveFolderUri
+            = Uri.parse(prefs.getString(SAF_ARCHIVE_URI_PREF, null));
+        Uri tempFolderUri
+            = Uri.parse(prefs.getString(SAF_TEMP_URI_PREF, null));
+
+        if (crosswordsFolderUri != null
+                && archiveFolderUri != null
+                && tempFolderUri != null) {
+            return new FileHandlerSAF(
+                context, crosswordsFolderUri, archiveFolderUri, tempFolderUri
+            );
+        } else {
+            return null;
+        }
     }
 }
